@@ -1,0 +1,8 @@
+[tool.basedpyright]
+reportMissingTypeStubs = false
+reportWildcardImportFromLibrary = false
+reportUnknownArgumentType = false
+reportUnknownVariableType = false
+reportUnknownMemberType = false
+reportUnknownParameterType = false
+reportAny = false
