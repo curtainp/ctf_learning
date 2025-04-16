@@ -1,0 +1,22 @@
+* Description
+
+Elowen has been cursed to roam forever in an inescapable maze. You need to break her curse and set
+her free.
+
+* Solution
+
+First we run the program, we're given a TUI application showing something like a maze.
+[[file:2025-04-16_17-26.png]]
+
+Notice that top left corner contains the dimensions of the current terminal, and that information
+will update when we resize the terminal. Keep this in mind, may be helpful with next analysis.
+
+Load it into IDA, the ~main~ function and description has hinted us that use =Ncurses= to draw the
+character maze. Then we want to find the logic for dimensions information:
+[[file:2025-04-16_17-37.png]]
+
+We can notice that there are judgement for current terminal dimension (13, 37). when that satisfied,
+the programs use ~waddch~ to draw some character. So, let's resize the terminal to that size. Oh,
+that's flag is!
+
+BTW, what make me to try this first is that ~waddch~ xref a chunk data in =.data= segment.
