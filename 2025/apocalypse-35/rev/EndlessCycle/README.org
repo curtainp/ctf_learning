@@ -1,0 +1,107 @@
+* Description 
+
+The elves(🧝‍♀️) have whispered to Elowen that the key to the Dragon's Heart is never directly
+visible; instead, there are clues in all the sounds and movements hidden in the world.
+
+* Solution
+
+When we run the program, we're asked for the flag. Entering a random flag yields a error message.
+
+#+begin_src example
+❯ ./dist/challenge
+What is the flag? hello heart
+The mysteries of the universe remain closed to you...
+#+end_src
+
+** Decompilation
+
+Load it into IDA, we can get that program's main logic is very simple, which ~mmap()~ to get a memory,
+then initialize the ~rand/seed~ to dynamic generate code.
+
+#+begin_src c
+__int64 __fastcall main(int a1, char **a2, char **a3)
+{
+  unsigned __int64 i; // [rsp+0h] [rbp-20h]
+  unsigned __int64 j; // [rsp+8h] [rbp-18h]
+  unsigned int (*code_memory)(void); // [rsp+10h] [rbp-10h]
+
+  code_memory = (unsigned int (*)(void))mmap(0, 0x9Eu, PROT_READ|PROT_EXEC|PROT_WRITE, MAP_SHARED|MAP_ANON, -1, 0);
+  srand(seed);
+  for ( i = 0; i <= 0x9D; ++i )
+  {
+    for ( j = 0; j < dword_4040[i]; ++j )
+      rand();
+    *((_BYTE *)code_memory + i) = rand();
+  }
+  if ( code_memory() == 1 )
+    puts("You catch a brief glimpse of the Dragon's Heart - the truth has been revealed to you");
+  else
+    puts("The mysteries of the universe remain closed to you...");
+  return 0;
+}
+#+end_src
+
+** Debug to dump
+*** GDB Dump
+
+We can place a =hbreak= at ~mmap~ return address to break at the entry point of the generate code. Here
+we must use =hardware breakpoint=, cause the implementation of normal breakpoint work by writing a
+trap instruction ~0xcc~ into the code, so that will be override by ~xor~.
+
+Once we hit the breakpoint, we'll use ~dump memory /tmp/out $rip $rip + 0x1000~ to dump that memory
+out. then load it with IDA.
+
+*** IDA dynamic debug
+
+Except dump that actually code out then analysis that code. we can also dynamic debug it within IDA.
+as the normal case, breakpoint at ~call~ instruction of the generate code. after the breakpoint hit,
+we step into it:
+#+begin_src c
+__int64 sub_7FFFF7FBF000()
+{
+  signed __int64 v0; // rax
+  __int64 result; // rax
+  char *buf_1; // rcx
+  char buf[26]; // [rsp-110h] [rbp-118h] BYREF
+  _BYTE buf_2[6]; // [rsp-F6h] [rbp-FEh] BYREF
+  char What_is_the_flag?_[19]; // [rsp-10h] [rbp-18h] BYREF
+  char v6; // [rsp+3h] [rbp-5h]
+  int v7; // [rsp+4h] [rbp-4h]
+
+  v6 = 0;
+  v7 = 0;
+  strcpy(What_is_the_flag?_, "What is the flag? ");
+  v0 = sys_write(1u, What_is_the_flag?_, 0x12u);
+  result = sys_read(0, buf, 0x100u);
+  if ( result > 0 )
+  {
+    buf_1 = buf;
+    do
+    {
+      *(_DWORD *)buf_1 ^= 0xBEEFCAFE;
+      buf_1 += 4;
+    }
+    while ( buf_1 < buf_2 );
+    return memcmp(&unk_7FFFF7FBF084, buf, 0x1Au) == 0;
+  }
+  return result;
+}
+#+end_src
+
+That's clear, we loop over that input buffer 4 bytes at a time. XOR it with ~0xbeefcafe~. Finally,
+~memcmp~ it with the =unk_7FFFF7FBF084=. So we can simply XOR that =chunk= data with ~0xbeefcafe~ again to
+get the flag.
+
+** Script
+
+#+begin_src python :results output
+chunk_data = [0xC5AD9EB6, 0xD5DFFA92, 0xC7DCA8A1, 0xE18BA4CE, 0xE1DCA28A, 0xD29DFA89, 0x0000B79A]
+
+flag = b''
+for c in chunk_data:
+    flag += (c ^ 0xbeefcafe).to_bytes(4, 'little')
+print(flag[:-2])
+#+end_src
+
+#+RESULTS:
+: b'HTB{l00k_b3y0nd_th3_w0rld}'
