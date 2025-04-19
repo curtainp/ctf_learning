@@ -197,7 +197,7 @@ io.interactive()
 
 [[file:2025-04-19_13-17.png]]
 
-BTW, there is another way to achive the goal:
+BTW, there is another way to achieve the goal:
 1. use ROP to call ~mprotect~ to get a *RWX* place.
 2. use ROP to call ~read*~ to get the actually shellcode.
 3. ~ret~ to the shellcode.
