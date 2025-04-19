@@ -5,7 +5,10 @@ home. Through exploits and tricks, they boldly dare, to conquer Eldoria, with sk
 
 * Solution
 Run the program, *we'll get a leak of address*. and let's input the length of song, then give the
-content of it. Keep the leak of address in mind, let's load it to disassembler:
+content of it. 
+[[file:2025-04-18_15-15.png]]
+
+Keep the leak of address in mind, let's load it to disassembler:
 #+begin_src c
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
