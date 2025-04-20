@@ -1,0 +1,226 @@
+* Description
+
+Malakar placed a spell on you that transported you to the Nether world. The only way to escape is to
+remember the enchantments of your forefathers, and unleash your ability to blast through Aether
+gateways... 
+
+* Solution
+
+
+The program leverage HeavenGate tech to perform =critical= operations in 64-bit mode, which have a
+famous architecture obfuscation at runtime.
+
+We need to extract these operations (*remember these operations should run in 64-bit mode*), then
+=patching= out HeavenGate, which trivial for our reverse after that.
+
+** Detect mode at runtime
+:PROPERTIES:
+:ID:       dae72b6d-5802-441c-a3be-3685b057a489
+:END:
+
+[[https://stackoverflow.com/questions/38063529/x86-32-x86-64-polyglot-machine-code-fragment-that-detects-64bit-mode-at-run-ti][famous example of 32bit/64bit polyglot code]]
+
+#+begin_src nasm
+.text:080499C3 31 C0                                         xor     eax, eax          ; clear ZF
+.text:080499C5 40                                            inc     eax               ; 32bit: inc eax; 64bit: unless REX prefix
+.text:080499C6 75 35                                         jnz     short loc_80499FD ; jump if ZF=0
+#+end_src
+
+** Pattern for change execute mode at runtime (HeavenGate)
+#+begin_src nasm
+.text:08049C38 6A 23                                         push    23h ; '#'
+.text:08049C3A 8D 05 4B 9C 04 08                             lea     eax, sub_8049C4B ; prologue with:
+.text:08049C3A                                                                       ; popf
+.text:08049C3A                                                                       ; popa
+.text:08049C3A                                                                       ; so it expects the current stack back to where eflags in on the top, then general purpose register
+.text:08049C40 50                                            push    eax
+.text:08049C41 6A 33                                         push    33h ; '3'
+.text:08049C43 8D 05 B9 99 04 08                             lea     eax, sub_80499B9
+.text:08049C49 50                                            push    eax
+.text:08049C4A CB                                            retf
+#+end_src
+
+According to x86 documentation, [[https://www.felixcloutier.com/x86/ret][retf]] pops *two items* off the stack - the return address and a code
+segment address. On Linux, the CS register determines whether a program is executing in
+compatibility mode or 64-bit mode. *A value of 0x23 causes the program to execute in 32-bit mode*.
+while *a value of 0x33 causes the program to execute in 64-bit mode*.
+
+** Extract critical operations
+
+For every 64-bit jump for HeavenGate pattern (which make a ~retf~ for current stack like this: jump
+rip/cs(0x33)), we will see [[id:dae72b6d-5802-441c-a3be-3685b057a489][Detect mode at runtime]] for obfuscation, but in 64-bit mode, they just
+useless. The following ~call~ instruction is the critical operation that we need.
+
+*** sub_804A03D (seed)
+
+#+begin_src nasm
+0x0000000000000000:  F3 0F 1E FA                      endbr64 
+0x0000000000000004:  55                               push    rbp
+0x0000000000000005:  48 89 E5                         mov     rbp, rsp
+0x0000000000000008:  48 B8 EF BE AD DE BE BA FE CA    movabs  rax, 0xcafebabedeadbeef
+0x0000000000000012:  48 89 05 CA B2 0C 00             mov     qword ptr [rip + 0xcb2ca], rax
+0x0000000000000019:  48 B8 BE BA FE CA CE FA ED FE    movabs  rax, 0xfeedfacecafebabe
+0x0000000000000023:  48 89 05 C1 B2 0C 00             mov     qword ptr [rip + 0xcb2c1], rax
+0x000000000000002a:  C6 05 C2 B2 0C 00 01             mov     byte ptr [rip + 0xcb2c2], 1
+0x0000000000000031:  90                               nop     
+0x0000000000000032:  5D                               pop     rbp
+0x0000000000000033:  C3                               ret     
+#+end_src
+
+*** sub_8049FD3 (read syscall)
+
+#+begin_src nasm
+0x0000000000000000:  F3 0F 1E FA       endbr64 
+0x0000000000000004:  55                push    rbp
+0x0000000000000005:  48 89 E5          mov     rbp, rsp
+0x0000000000000008:  48 83 EC 20       sub     rsp, 0x20
+0x000000000000000c:  89 7D FC          mov     dword ptr [rbp - 4], edi
+0x000000000000000f:  48 89 75 F0       mov     qword ptr [rbp - 0x10], rsi
+0x0000000000000013:  48 89 55 E8       mov     qword ptr [rbp - 0x18], rdx
+0x0000000000000017:  48 8B 4D E8       mov     rcx, qword ptr [rbp - 0x18]
+0x000000000000001b:  48 8B 55 F0       mov     rdx, qword ptr [rbp - 0x10]
+0x000000000000001f:  8B 45 FC          mov     eax, dword ptr [rbp - 4]
+0x0000000000000022:  89 C6             mov     esi, eax
+0x0000000000000024:  BF 00 00 00 00    mov     edi, 0
+0x0000000000000029:  B8 00 00 00 00    mov     eax, 0
+0x000000000000002e:  E8 65 FF FF FF    call    sub_8049F6B
+0x0000000000000033:  C9                leave   
+0x0000000000000034:  C3                ret     
+#+end_src
+
+**** sub_80c9F6B
+#+begin_src nasm
+0x0000000000000000:  F3 0F 1E FA             endbr64 
+0x0000000000000004:  48 89 B5 58 FF FF FF    mov     qword ptr [rbp - 0xa8], rsi
+0x000000000000000b:  48 89 95 60 FF FF FF    mov     qword ptr [rbp - 0xa0], rdx
+0x0000000000000012:  48 89 8D 68 FF FF FF    mov     qword ptr [rbp - 0x98], rcx
+0x0000000000000019:  4C 89 85 70 FF FF FF    mov     qword ptr [rbp - 0x90], r8
+0x0000000000000020:  4C 89 8D 78 FF FF FF    mov     qword ptr [rbp - 0x88], r9
+0x0000000000000027:  84 C0                   test    al, al
+0x0000000000000029:  74 20                   je      0x4b                                 ;; taken
+0x000000000000002b:  0F 29 45 80             movaps  xmmword ptr [rbp - 0x80], xmm0
+0x000000000000002f:  0F 29 4D 90             movaps  xmmword ptr [rbp - 0x70], xmm1
+0x0000000000000033:  0F 29 55 A0             movaps  xmmword ptr [rbp - 0x60], xmm2
+0x0000000000000037:  0F 29 5D B0             movaps  xmmword ptr [rbp - 0x50], xmm3
+0x000000000000003b:  0F 29 65 C0             movaps  xmmword ptr [rbp - 0x40], xmm4
+0x000000000000003f:  0F 29 6D D0             movaps  xmmword ptr [rbp - 0x30], xmm5
+0x0000000000000043:  0F 29 75 E0             movaps  xmmword ptr [rbp - 0x20], xmm6
+0x0000000000000047:  0F 29 7D F0             movaps  xmmword ptr [rbp - 0x10], xmm7
+0x000000000000004b:  48 89 F8                mov     rax, rdi                            ;; 0 - read
+0x000000000000004e:  48 89 F7                mov     rdi, rsi
+0x0000000000000051:  48 89 D6                mov     rsi, rdx
+0x0000000000000054:  48 89 CA                mov     rdx, rcx
+0x0000000000000057:  4D 89 C2                mov     r10, r8
+0x000000000000005a:  4D 89 C8                mov     r8, r9
+0x000000000000005d:  4C 8B 4C 24 08          mov     r9, qword ptr [rsp + 8]
+0x0000000000000062:  0F 05                   syscall 
+0x0000000000000064:  C3                      ret    
+#+end_src
+
+*** sub_804A118 (char_bit_twiddle)
+
+#+begin_src nasm
+0x0000000000000000:  F3 0F 1E FA                endbr64 
+0x0000000000000004:  55                         push    rbp
+0x0000000000000005:  48 89 E5                   mov     rbp, rsp
+0x0000000000000008:  89 F8                      mov     eax, edi
+0x000000000000000a:  88 45 EC                   mov     byte ptr [rbp - 0x14], al
+0x000000000000000d:  48 C7 45 F8 00 00 00 00    mov     qword ptr [rbp - 8], 0
+0x0000000000000015:  0F B6 45 EC                movzx   eax, byte ptr [rbp - 0x14]
+0x0000000000000019:  48 01 C0                   add     rax, rax
+0x000000000000001c:  25 AA 00 00 00             and     eax, 0xaa
+0x0000000000000021:  48 89 45 F8                mov     qword ptr [rbp - 8], rax
+0x0000000000000025:  0F B6 45 EC                movzx   eax, byte ptr [rbp - 0x14]
+0x0000000000000029:  48 D1 E8                   shr     rax, 1
+0x000000000000002c:  83 E0 55                   and     eax, 0x55
+0x000000000000002f:  48 09 45 F8                or      qword ptr [rbp - 8], rax
+0x0000000000000033:  48 8B 45 F8                mov     rax, qword ptr [rbp - 8]
+0x0000000000000037:  5D                         pop     rbp
+0x0000000000000038:  C3                         ret     
+#+end_src
+
+*** sub_804A151 (crc64)
+#+begin_src nasm
+0x0000000000000000:  F3 0F 1E FA                      endbr64 
+0x0000000000000004:  55                               push    rbp
+0x0000000000000005:  48 89 E5                         mov     rbp, rsp
+0x0000000000000008:  48 89 7D D8                      mov     qword ptr [rbp - 0x28], rdi
+0x000000000000000c:  48 89 75 D0                      mov     qword ptr [rbp - 0x30], rsi
+0x0000000000000010:  48 C7 45 E8 FF FF FF FF          mov     qword ptr [rbp - 0x18], -1
+0x0000000000000018:  48 C7 45 F0 00 00 00 00          mov     qword ptr [rbp - 0x10], 0
+0x0000000000000020:  EB 5D                            jmp     0x7f
+0x0000000000000022:  48 8B 55 D8                      mov     rdx, qword ptr [rbp - 0x28]
+0x0000000000000026:  48 8B 45 F0                      mov     rax, qword ptr [rbp - 0x10]
+0x000000000000002a:  48 01 D0                         add     rax, rdx
+0x000000000000002d:  0F B6 00                         movzx   eax, byte ptr [rax]
+0x0000000000000030:  0F B6 C0                         movzx   eax, al
+0x0000000000000033:  48 31 45 E8                      xor     qword ptr [rbp - 0x18], rax
+0x0000000000000037:  48 C7 45 F8 00 00 00 00          mov     qword ptr [rbp - 8], 0
+0x000000000000003f:  EB 32                            jmp     0x73
+0x0000000000000041:  48 8B 45 E8                      mov     rax, qword ptr [rbp - 0x18]
+0x0000000000000045:  83 E0 01                         and     eax, 1
+0x0000000000000048:  48 85 C0                         test    rax, rax
+0x000000000000004b:  74 1D                            je      0x6a
+0x000000000000004d:  48 8B 45 E8                      mov     rax, qword ptr [rbp - 0x18]
+0x0000000000000051:  48 D1 E8                         shr     rax, 1
+0x0000000000000054:  48 89 C2                         mov     rdx, rax
+0x0000000000000057:  48 B8 42 0F 87 D7 95 57 6C C9    movabs  rax, 0xc96c5795d7870f42
+0x0000000000000061:  48 31 D0                         xor     rax, rdx
+0x0000000000000064:  48 89 45 E8                      mov     qword ptr [rbp - 0x18], rax
+0x0000000000000068:  EB 04                            jmp     0x6e
+0x000000000000006a:  48 D1 6D E8                      shr     qword ptr [rbp - 0x18], 1
+0x000000000000006e:  48 83 45 F8 01                   add     qword ptr [rbp - 8], 1
+0x0000000000000073:  48 83 7D F8 07                   cmp     qword ptr [rbp - 8], 7
+0x0000000000000078:  76 C7                            jbe     0x41
+0x000000000000007a:  48 83 45 F0 01                   add     qword ptr [rbp - 0x10], 1
+0x000000000000007f:  48 8B 45 F0                      mov     rax, qword ptr [rbp - 0x10]
+0x0000000000000083:  48 3B 45 D0                      cmp     rax, qword ptr [rbp - 0x30]
+0x0000000000000087:  72 99                            jb      0x22
+0x0000000000000089:  48 8B 45 E8                      mov     rax, qword ptr [rbp - 0x18]
+0x000000000000008d:  48 F7 D0                         not     rax
+0x0000000000000090:  5D                               pop     rbp
+0x0000000000000091:  C3                               ret     
+#+end_src
+
+*** sub_804A071 (xorshift128p)
+#+begin_src nasm
+0x0000000000000000:  F3 0F 1E FA                endbr64 
+0x0000000000000004:  55                         push    rbp
+0x0000000000000005:  48 89 E5                   mov     rbp, rsp
+0x0000000000000008:  48 C7 45 E8 00 00 00 00    mov     qword ptr [rbp - 0x18], 0
+0x0000000000000010:  48 C7 45 F0 00 00 00 00    mov     qword ptr [rbp - 0x10], 0
+0x0000000000000018:  C7 45 E4 00 00 00 00       mov     dword ptr [rbp - 0x1c], 0
+0x000000000000001f:  EB 67                      jmp     0x88
+0x0000000000000021:  48 8B 05 87 B2 0C 00       mov     rax, qword ptr [rip + 0xcb287]
+0x0000000000000028:  48 89 45 F0                mov     qword ptr [rbp - 0x10], rax
+0x000000000000002c:  48 8B 05 84 B2 0C 00       mov     rax, qword ptr [rip + 0xcb284]
+0x0000000000000033:  48 89 45 F8                mov     qword ptr [rbp - 8], rax
+0x0000000000000037:  48 8B 45 F8                mov     rax, qword ptr [rbp - 8]
+0x000000000000003b:  48 89 05 6D B2 0C 00       mov     qword ptr [rip + 0xcb26d], rax
+0x0000000000000042:  48 8B 45 F0                mov     rax, qword ptr [rbp - 0x10]
+0x0000000000000046:  48 C1 E0 17                shl     rax, 0x17
+0x000000000000004a:  48 31 45 F0                xor     qword ptr [rbp - 0x10], rax
+0x000000000000004e:  48 8B 45 F0                mov     rax, qword ptr [rbp - 0x10]
+0x0000000000000052:  48 C1 E8 11                shr     rax, 0x11
+0x0000000000000056:  48 31 45 F0                xor     qword ptr [rbp - 0x10], rax
+0x000000000000005a:  48 8B 45 F8                mov     rax, qword ptr [rbp - 8]
+0x000000000000005e:  48 C1 E8 1A                shr     rax, 0x1a
+0x0000000000000062:  48 33 45 F8                xor     rax, qword ptr [rbp - 8]
+0x0000000000000066:  48 31 45 F0                xor     qword ptr [rbp - 0x10], rax
+0x000000000000006a:  48 8B 45 F0                mov     rax, qword ptr [rbp - 0x10]
+0x000000000000006e:  48 89 05 42 B2 0C 00       mov     qword ptr [rip + 0xcb242], rax
+0x0000000000000075:  48 8B 55 F0                mov     rdx, qword ptr [rbp - 0x10]
+0x0000000000000079:  48 8B 45 F8                mov     rax, qword ptr [rbp - 8]
+0x000000000000007d:  48 01 D0                   add     rax, rdx
+0x0000000000000080:  48 89 45 E8                mov     qword ptr [rbp - 0x18], rax
+0x0000000000000084:  83 45 E4 01                add     dword ptr [rbp - 0x1c], 1
+0x0000000000000088:  0F B6 05 30 B2 0C 00       movzx   eax, byte ptr [rip + 0xcb230]
+0x000000000000008f:  0F B6 C0                   movzx   eax, al
+0x0000000000000092:  39 45 E4                   cmp     dword ptr [rbp - 0x1c], eax
+0x0000000000000095:  7E 8A                      jle     0x21
+0x0000000000000097:  48 8B 45 F0                mov     rax, qword ptr [rbp - 0x10]
+0x000000000000009b:  88 05 1E B2 0C 00          mov     byte ptr [rip + 0xcb21e], al
+0x00000000000000a1:  48 8B 45 E8                mov     rax, qword ptr [rbp - 0x18]
+0x00000000000000a5:  5D                         pop     rbp
+0x00000000000000a6:  C3                         ret     
+#+end_src
