@@ -270,7 +270,7 @@ nibble can be 1/16 chance to success). then in the next loop we can overwrite re
 directly without bother canary at all.     
 #+begin_src c
 // offset_specialty2s = 0x20
-,*(s + i + 0x118) = safe_buffer
+*(s + i + 0x118) = safe_buffer
 #+end_src
 
 BTW, there's ~win~ function within the binary:
