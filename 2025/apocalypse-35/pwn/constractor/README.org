@@ -211,7 +211,7 @@ struct PersonInfo {
 #+end_src
 
 ** Bypass stack canary and overwrite return address
-After exhibit ~PersonInfo~ to user, the program give one chance to review and correct the information.
+After exhibit ~PersonInfo~ to user, the program give chance to review and correct the information.
 *But within the number 4 field, which is ~specialty~, there's a buffer overflow exist!*
 #+begin_src c
 if ( s_ == 4 )

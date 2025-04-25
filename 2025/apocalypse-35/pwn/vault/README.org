@@ -1,0 +1,26 @@
+* Description
+
+Welcome to the encrypted Vault of Eldoria. This ancient vault safeguards the realm's most vital
+secrets. Can you breach its arcane defenses?
+
+* Solution
+
+** Preliminary analysis
+
+#+begin_src bash
+❯ checksec vault
+[*] '/home/curtain/Documents/ctf/2025/apocalypse-35/pwn/vault/dist/vault'
+    Arch:       amd64-64-little
+    RELRO:      Full RELRO
+    Stack:      Canary found
+    NX:         NX enabled
+    PIE:        PIE enabled
+    RUNPATH:    b'./glibc/'
+    SHSTK:      Enabled
+    IBT:        Enabled
+    Stripped:   No
+
+#+end_src
+
+Program with =FULL= protection enabled with following behavior:
+[[file:2025-04-24_16-23.png]]
