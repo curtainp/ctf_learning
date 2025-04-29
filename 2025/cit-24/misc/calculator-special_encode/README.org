@@ -1,0 +1,61 @@
+* Description
+
+Find the flag.
+
+* Solution
+
+The =lua= script seems very normal without vulnerabilities, the only strange thing is that there're
+lots of =blank chars=. 
+
+[[file:2025-04-28_22-16.png]]
+
+And I try to decode this use
+
+#+begin_src bash
+space(0x20) => 0
+tab(0x09)   => 1
+#+end_src
+
+the reversed get meanless number. So we get this:
+
+#+begin_example
+0001000011
+1
+000001001001
+1
+000001010100
+1
+000001111011
+1
+000001101000
+1
+000001100110
+1
+000001110100
+1
+000000110100
+1
+000001100010
+1
+000001010100
+1
+000000110000
+1
+000000110100
+1
+000000110001
+1
+000000110101
+1
+000001001100
+1
+000001100010
+1
+000001111101
+1
+00
+#+end_example
+
+We notice that this number all in ascii fields. So convert it get what we need.
+
+[[file:2025-04-29_17-21.png]]
