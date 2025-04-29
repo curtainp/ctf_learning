@@ -1,0 +1,38 @@
+* Description
+
+Forget about the flag, look at how cute that dog is!
+
+* Solution
+
+There's a cute dog picture we get.
+
+[[file:dogpicture.png]]
+
+This time the =zsteg= is not work:
+#+begin_src bash
+ctf ❯ zsteg dogpicture.png
+imagedata           .. file: Tower32/600/400 68020 object
+b1,b,lsb,xy         .. file: SVR2 executable (Amdahl-UTS)
+b1,bgr,lsb,xy       .. /usr/lib/ruby/gems/3.3.0/gems/zsteg-0.2.13/lib/zsteg/checker/wbstego.rb:41:in `to_s': stack level too deep (SystemStackError)
+        from /usr/lib/ruby/gems/3.3.0/gems/iostruct-0.5.0/lib/iostruct.rb:180:in `inspect'
+        from /usr/lib/ruby/gems/3.3.0/gems/zsteg-0.2.13/lib/zsteg/checker/wbstego.rb:41:in `to_s'
+        from /usr/lib/ruby/gems/3.3.0/gems/iostruct-0.5.0/lib/iostruct.rb:180:in `inspect'
+        from /usr/lib/ruby/gems/3.3.0/gems/zsteg-0.2.13/lib/zsteg/checker/wbstego.rb:41:in `to_s'
+        from /usr/lib/ruby/gems/3.3.0/gems/iostruct-0.5.0/lib/iostruct.rb:180:in `inspect'
+        from /usr/lib/ruby/gems/3.3.0/gems/zsteg-0.2.13/lib/zsteg/checker/wbstego.rb:41:in `to_s'
+        from /usr/lib/ruby/gems/3.3.0/gems/iostruct-0.5.0/lib/iostruct.rb:180:in `inspect'
+        from /usr/lib/ruby/gems/3.3.0/gems/zsteg-0.2.13/lib/zsteg/checker/wbstego.rb:41:in `to_s'
+         ... 10906 levels...
+        from /usr/lib/ruby/gems/3.3.0/gems/zsteg-0.2.13/lib/zsteg.rb:26:in `run'
+        from /usr/lib/ruby/gems/3.3.0/gems/zsteg-0.2.13/bin/zsteg:8:in `<top (required)>'
+        from /usr/bin/zsteg:25:in `load'
+        from /usr/bin/zsteg:25:in `<main>'
+#+end_src
+
+And the resolve method from discord discussion:
+[[file:dogstegextract.png]]
+
+
+** TODO Learned
+
+How the idea of this order of extraction came up?
