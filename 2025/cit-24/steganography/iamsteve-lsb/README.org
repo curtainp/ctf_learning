@@ -1,0 +1,17 @@
+* Description
+
+You were supposed to be a hero, Brian!
+
+* Solution
+
+This challenge is the same as =Blank Image=, we can see that there's a string seems like =base64=
+encoded. So that's it.
+
+[[file:2025-04-29_16-06.png]]
+
+#+begin_src bash
+echo VEhJU19pc19hX2NyYWZ0aW5nX3RhYmxl | base64 -d
+#+end_src
+
+#+RESULTS:
+: THIS_is_a_crafting_table
