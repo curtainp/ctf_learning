@@ -1,0 +1,41 @@
+* Description
+
+Find the flag.
+
+* Solution
+
+There's a =zip= archive file we get, but it issues an error when we =unzip= it.
+
+#+begin_src bash
+ctf ❯ unzip baller.zip
+Archive:  baller.zip
+  End-of-central-directory signature not found.  Either this file is not
+  a zipfile, or it constitutes one disk of a multi-part archive.  In the
+  latter case the central directory and zipfile comment will be found on
+  the last disk(s) of this archive.
+unzip:  cannot find zipfile directory in one of baller.zip or
+        baller.zip.zip, and cannot find baller.zip.ZIP, period.
+#+end_src
+
+Maybe there're some embed data or others ? Let's ~binwalk~ it.
+
+#+begin_src bash
+ctf ❯ binwalk baller.zip
+
+                               /home/curtain/Documents/ctf/2025/cit-24/forensics/baller-bin_extraction/baller.zip
+------------------------------------------------------------------------------------------------------------------------------------------------
+DECIMAL                            HEXADECIMAL                        DESCRIPTION
+------------------------------------------------------------------------------------------------------------------------------------------------
+0                                  0x0                                ZIP archive, file count: 4, total size: 16631 bytes
+16631                              0x40F7                             GIF image, 3840x2160 pixels, total size: 2925133 bytes
+------------------------------------------------------------------------------------------------------------------------------------------------
+
+Analyzed 1 file for 85 file signatures (187 magic patterns) in 15.0 milliseconds
+#+end_src
+
+Oh, luckily, there is a =GIF= image embed. Let's extract it out.
+
+[[file:image.gif]]
+
+The bottom right corner has a string that seems like a flag: =im_balling_fr=
+
