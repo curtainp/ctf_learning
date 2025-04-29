@@ -1,0 +1,27 @@
+* Description
+
+I got this strange email from another CTF participant not too long ago. I am just not sure what they
+mean by this... 
+
+Do you love CTFs as much as they do?
+
+* Solution
+
+There's a email with nothing interesting for us, except there're some data encode with =base64= in
+=DKIM-Signature=, After learn some basis information about =DKIM-Signature= from [[https://en.wikipedia.org/wiki/DomainKeys_Identified_Mail][wikipedia]], we can first
+decode the ~b~ fields:
+
+#+begin_src bash
+echo V293LCB3aGF0IGEgYmVhdXRpZnVsIGxpdHRsZSBwb2VtLiBJIGFsbW9zdCBzaGVkIGEgdGVhciByZWFkaW5nIHRoYXQuIEhvcGVmdWxseSB5b3UgbGVhcm5lZCBtb3JlIGFib3V0IGVtYWlsIGhlYWRlcnMuIEJ1dCBzZXJpb3VzbHksIGl0IGdldHMgbWUgd29uZGVyaW5nLi4uIGRvIHlvdSBsb3ZlIENURnMgYXMgbXVjaCBhcyB0aGV5IGRvPwoKQ0lUe2lfbDB2M19jdGYkX3QwMH0= | base64 -d
+#+end_src
+
+#+RESULTS:
+| Wow,                 | what | a | beautiful | little | poem. | I | almost | shed | a | tear | reading | that. | Hopefully | you | learned | more | about | email | headers. | But | seriously, | it | gets | me | wondering... | do | you | love | CTFs | as | much | as | they | do? |
+|                      |      |   |           |        |       |   |        |      |   |      |         |       |           |     |         |      |       |       |          |     |            |    |      |    |              |    |     |      |      |    |      |    |      |     |
+| CIT{i_l0v3_ctf$_t00} |      |   |           |        |       |   |        |      |   |      |         |       |           |     |         |      |       |       |          |     |            |    |      |    |              |    |     |      |      |    |      |    |      |     |
+
+
+** Learned
+
+According to the [[https://en.wikipedia.org/wiki/DomainKeys_Identified_Mail][wikipedia]], we know that field ~b~ is the signature of headers and body, so there
+should be only one of it commonly.
