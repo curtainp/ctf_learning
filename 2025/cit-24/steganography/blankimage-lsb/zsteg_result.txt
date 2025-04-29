@@ -1,0 +1,8 @@
+b1,b,lsb,xy         .. file: OpenPGP Public Key
+b1,a,lsb,xy         .. text: "CIT{n1F0Rsm0Er40}"
+b1,bgr,msb,xy       .. file: OpenPGP Secret Key
+b2,abgr,lsb,xy      .. text: "-6k^6\n<^G"
+b3,rgb,msb,xy       .. text: "x&f{KH:7"
+b3,bgr,lsb,xy       .. text: "AJ~HJ2oS"
+b4,a,lsb,xy         .. file: TeX font metric data (\001)
+b4,rgba,lsb,xy      .. text: "@2AXqmPv1"

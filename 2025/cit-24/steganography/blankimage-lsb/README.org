@@ -1,0 +1,20 @@
+* Description
+
+I was gonna make a really cool challenge but then I literally forgot about it so all I have is this
+blank image. Good luck! 
+
+* Solution
+
+We get a blank image as title says:
+
+[[file:image.png]]
+
+Cause this challenge is about =steg=, we can try tools like =steghide=, =zsteg= and so on. Luckily, the
+[[https://github.com/zed-0xff/zsteg][zsteg]] has revealed the answer for us:
+
+[[file:2025-04-29_15-36.png]]
+
+** TODO Learned
+
+The [[https://github.com/zed-0xff/zsteg][zsteg]] tool has implements most useful tech used by steganography. We need to dive into it.
+
