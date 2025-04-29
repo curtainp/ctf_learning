@@ -1,0 +1,17 @@
+* Description
+
+Bombardiro Crocodillo or....? You find out...
+
+* Solution
+
+[[file:2025-04-28_18-30.png]]
+
+There's only one frame with message different with others and seem like encode with =base64=.
+
+#+begin_src bash
+echo Q0lUe3RyNGw0bDNyMF90cjRsNGw0fQ== | base64 -d
+#+end_src
+
+#+RESULTS:
+: CIT{tr4l4l3r0_tr4l4l4}
+
