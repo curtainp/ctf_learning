@@ -1,0 +1,19 @@
+* Description
+
+Like the actual Queen, not the band
+
+* Solution
+
+=zsteg= get following:
+
+[[file:2025-04-29_16-20.png]]
+
+I'm just stuck here, don't know what's meaning for this. After end of CTF, the discord discussions
+say that this is =coordinate= of the chess. when we put the point to the chess board one by one, the
+=flag= shows:
+
+[[file:result.png]]
+
+** Learned
+
+(a-h)(1-8) maybe the chess coordinate.
