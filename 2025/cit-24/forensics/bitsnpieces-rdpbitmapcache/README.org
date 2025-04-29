@@ -1,0 +1,16 @@
+* Description
+
+Somewhere in these digital fragments lies what you've been searching for your entire lifetime, or
+really just this weekend ;) 
+
+* Solution
+
+We get a binary file with following header:
+#+begin_example
+00000000  52 44 50 38 62 6d 70 00  06 00 00 00 f6 17 b0 bf  |RDP8bmp.........|
+00000010  6e 5f ce a9 40 00 40 00  00 00 00 ff 00 00 00 ff  |n_..@.@.........|
+00000020  00 00 00 ff 00 00 00 ff  00 00 00 ff 00 00 00 ff  |................|
+#+end_example
+
+After Google that we find this repo for parse [[https://github.com/ANSSI-FR/bmc-tools/][bmc-tools]]. Here we can output a collage image cause
+there're thousands of file. The flag is there.
