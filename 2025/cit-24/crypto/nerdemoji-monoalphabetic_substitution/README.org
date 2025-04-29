@@ -1,0 +1,20 @@
+* Description
+
+Find the flag. 
+
+* Solution
+
+There's a file appears to encrypted in some way.
+#+begin_example
+Hommq, q roli ziqz iql zkqfletfrtr ozl ixdwst gkouofl, iql wtegdt q usgwqs hitfgdtfgf, etstwkqztr ygk ozl ctklqzosozn, ysqcgk, qfr exszxkqs loufoyoeqfet. Ykgd ozl ofethzogf of Fqhstl, Ozqsn, zg ozl lzqzxl ql q wtsgctr lzqhst of igxltigsrl qfr ktlzqxkqfzl vgksrvort, hommq tdwgrotl q koei zqhtlzkn gy iolzgkn, zkqrozogf, qfr offgcqzogf. Ziol tllqn rtsctl ofzg zit gkouofl gy hommq, ozl tcgsxzogf zikgxui zit qutl, zit cqkogxl lznstl qfr zghhoful ziqz iqct tdtkutr, qfr ozl odhqez gf exszxkt qfr lgeotzn.
+Zit Gkouofl gy Hommq
+#+end_example
+
+Let's take [[https://www.dcode.fr/cipher-identifier][Cipher Identifier]] to see the result of analysis:
+
+[[file:2025-04-29_14-40.png]]
+
+So we can try these cipher one by one, we'll see that only =monoalphabetic-substitution= cipher will
+give us meaningful sentences, and in the meanwhile include the =flag.=
+
+[[file:2025-04-29_14-45.png]]
