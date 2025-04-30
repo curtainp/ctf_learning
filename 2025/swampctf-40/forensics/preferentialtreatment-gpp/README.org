@@ -1,0 +1,39 @@
+* Description
+
+We have an old Windows Server 2008 instance that we lost the password for. Can you see if you can
+find one in this packet capture? 
+
+* Solution
+
+After investigating the =pcap=, I follow the TCP stream and discovered the windows policy preference
+group file (groups.xml). 
+
+#+begin_src xml
+<?xml version="1.0" encoding="utf-8"?>
+<Groups clsid="{3125E937-EC16-4b4c-9934-544FC6D24D26}">
+    <User clsid="{DF5F1855-52E5-4d24-8B1A-D9BDE98BA1D1}" name="swampctf.com\Administrator" image="2"
+          changed="2018-07-18 20:46:06" uid="{EF57DA28-5F69-4530-A59E-AAB58578219D}">
+        <Properties action="U" newName="" fullName="" description=""
+                    cpassword="dAw7VQvfj9rs53A8t4PudTVf85Ca5cmC1Xjx6TpI/cS8WD4D8DXbKiWIZslihdJw3Rf+ijboX7FgLW7pF0K6x7dfhQ8gxLq34ENGjN8eTOI="
+                    changeLogon="0" noChange="1" neverExpires="1" acctDisabled="0" userName="swampctf.com\Administrator"/>
+    </User>
+</Groups>
+#+end_src
+
+
+maybe the ~cpassword~ is what I needed. so next step is to decrypt it. after google for it. I find that
+https://github.com/t0thkr1s/gpp-decrypt which successful decrypt the password.
+
+#+begin_src sh
+$ python gpp-decrypt.py -c dAw7VQvfj9rs53A8t4PudTVf85Ca5cmC1Xjx6TpI/cS8WD4D8DXbKiWIZslihdJw3Rf+ijboX7FgLW7pF0K6x7dfhQ8gxLq34ENGjN8eTOI=
+/home/curtain/Tools/gpp-decrypt/gpp-decrypt.py:10: SyntaxWarning: invalid escape sequence '\ '
+  banner = '''
+
+                               __                                __
+  ___ _   ___    ___  ____ ___/ / ___  ____  ____  __ __   ___  / /_
+ / _ `/  / _ \  / _ \/___// _  / / -_)/ __/ / __/ / // /  / _ \/ __/
+ \_, /  / .__/ / .__/     \_,_/  \__/ \__/ /_/    \_, /  / .__/\__/
+/___/  /_/    /_/                                /___/  /_/
+
+[ * ] Password: swampCTF{4v3r463_w1nd0w5_53cur17y}
+#+end_src
