@@ -1,0 +1,15 @@
+* Description
+
+Bro what am I hearing rn
+
+* Solution
+
+This challenge audio using a [[https://dimorse.com/morse-code-audio-decoder/][morse encode]], I use this online tool to decode it.
+
+[[file:2025-04-30_10-43.png]]
+
+But the result seems like another encoded message. So [[https://www.dcode.fr/cipher-identifier][cipher identifier]] help us.
+[[file:2025-04-30_10-45.png]]
+
+The =Ook!= decode give us flag:
+[[file:2025-04-30_10-46.png]]
