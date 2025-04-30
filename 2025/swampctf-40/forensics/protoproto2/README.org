@@ -1,0 +1,57 @@
+* Description
+
+Moto Moto heard you were able to reverse his server code, so he set up some ~"encryption"~. Can you
+figure out the key and retrieve the flag? 
+
+~chals.swampctf.com:442555~
+
+* Solution
+
+
+Like before but this time we need =one more= headers:
+
+[[file:2025-04-30_17-59.png]]
+
+#+begin_src python :results output
+
+#!/usr/bin/env python3
+
+import socket
+
+server = "chals.swampctf.com"
+port = 44255
+
+# 02 request command
+# 15 key length
+# xxx super secret key
+# 08 command length
+# flag.txt command
+payload = (
+    b"\x02"
+    + len(b"swampctf{").to_bytes(1, "big")
+    + b"swampctf{"
+    + len(b"flag.txt").to_bytes(1, "big")
+    + b"flag.txt"
+)
+
+# UDP protocol
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+_ = s.sendto(payload, (server, port))
+
+response, addr = s.recvfrom(4096)
+
+print(f"response: {response.decode(errors='ignore')}")
+
+s.close()
+#+end_src
+
+This give me part of =super secret password=.
+
+#+begin_src bash
+> python exp.py
+response: i_do_real.....
+#+end_src
+
+The description hints us that "encryption". We guess that maybe the last part of password. Resend
+the request with that password we get the flag <:

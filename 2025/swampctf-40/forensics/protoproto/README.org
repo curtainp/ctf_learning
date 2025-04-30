@@ -1,0 +1,44 @@
+* Description 
+
+Moto Moto likes you. But not enough to explain how his server works. We got a pcap of the client and
+server communicating. Can you figure out how the server works and retrieve the flag? 
+
+~chals.swampctf.com:44254~
+
+* Solution
+
+Analyzed the =pcap= file, we can notice that there're almost the =TLS= and =UDP= traffic. the former we
+can't parser without key, but the latter give me the flag like this:
+
+[[file:2025-04-30_17-32.png]]
+
+As the flag hints, this is not the real flag we need. but we notice that flag was send to the client
+after it send some =command= like  *give me the ~flag.txt~*. the first two bytes seems like header
+metadata information.  And there's a server address within description. Let's do it.
+
+#+begin_src python :results output
+#!/usr/bin/env python3
+
+import socket
+
+server = "chals.swampctf.com"
+port = 44254
+
+# 02 command request
+# 08 command length
+# command payload
+payload = b"\x02\x08\x66\x6c\x61\x67\x2e\x74\x78\x74"
+
+# UDP protocol
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+_ = s.sendto(payload, (server, port))
+
+response, addr = s.recvfrom(4096)
+
+print(f"response: {response.decode(errors='ignore')}")
+
+s.close()
+#+end_src
+
+Yeah, we get the flag.
