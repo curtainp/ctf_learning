@@ -1,0 +1,51 @@
+* Description
+
+Somebody once told me the cipher was gonna roll me. You are the sharpest tool in the shed <3 After
+this challenge you might want to add that song to your playlist :) 
+
+* Solution
+
+The challenge we get looks strange at first glance, but the title hints us that this is a
+=songcipher=, So what's the song? Maybe the description? After I google for this get what I want:
+
+[[file:2025-04-30_12-09.png]]
+
+Now, I have the =key lyrics= and the cipher text, but what's cipher algorithm? Then I look the cipher
+text again, this "number" almost close to ASCII table (which 127 max). So we can try basic operation
+between them.
+
+#+begin_src python :results output
+>>> a = [0xaa, 0xd7, 0xce, 0xd9, 0x82, 0xd0]
+>>> b = "Somebody"
+>>> c = [ord(i) for i in b]
+>>> for a, c in zip(a, c):
+...     xor = a ^ c
+...     dec = a - c
+...     print(xor, dec)
+...
+249 87
+184 104
+163 97
+188 116
+224 32
+191 97
+#+end_src
+
+Luckily, seems like =subtraction= make sense (the results are within the ASCII table):
+
+#+begin_src python :results output
+#!/usr/bin/env python3
+
+with open('./data.txt', 'r') as f:
+    data = f.read()
+    
+data_num = [int(d, 16) for d in data.split(',')]
+lyrics = "Somebody once told me the world is gonna roll me I ain't the sharpest tool in the shed She was looking kind of dumb with her finger and her thumb In the shape of an \"L\" on her forehead"
+lyrics_num = [ord(i) for i in lyrics]
+
+for d, l in zip(data_num, lyrics_num):
+    print(chr(d - l), end = '')
+#+end_src
+
+#+RESULTS:
+: What are you doing in my swamp? Swamp! Swamp! Swamp! Oh, dear! Whoa! All right, get out of here. All of you, move it! Come on! Let's go! The flag is swampCTF{S1mpl3_S0ng_0TP_C1ph3r}
