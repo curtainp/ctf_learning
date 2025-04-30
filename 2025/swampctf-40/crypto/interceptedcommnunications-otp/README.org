@@ -1,0 +1,75 @@
+* Description
+
+We were able to listen in on our oponnents for a while, and managed to capture the ciphertexts and
+plaintexts of their communication, but were eventually kicked out. I'll send you a dump of what we
+managed to get so far, but long story short, there are pairs of encrypted and decrypted communications.
+We have reason to believe they're not following =otp-imal= security practices, and the most valuable
+communication should be happening any second now. I'll link the file below. Good luck.
+
+* Solution
+
+After unzip the given file =Captured_comms.zip=, has following structure:
+
+[[file:2025-04-30_13-38.png]]
+
+The encrypted and decrypted txt has same length, both all fills with 0 and 1. So I first convery it
+to ASCII get this:
+
+[[file:2025-04-30_13-42.png]]
+
+All decrypted txt give us some interesting messages:
+
+#+begin_example M1
+Hey, I forgot my jacket at the office. Can you bring it round when you come by later? Oh, and while you're there, can you check if my computer turned on by itself again?
+#+end_example
+
+#+begin_example M2
+Hey, I was thinking of getting some lunch, are you interested in going to that taco place around the corner? I heard they have some good food!
+#+end_example
+
+#+begin_example M3
+I'm pretty sure my coffee is plotting against me. It's suspiciously quiet today... What's it up to???
+#+end_example
+
+#+begin_example M4
+Are you sure this is really secure? I can't shake the feeling that I'm being watched somehow. Weird I know, but I swear there's someone listening...
+#+end_example
+
+#+begin_example M5
+Yesterday the strangest thing happened. My chair started spinning on it's own. I think it's trying to tell me something :/
+#+end_example
+
+And the description hints us =otp= which for =one-time pad= cipher (xor). So the ~key = message ^ cipher~.
+but there're 5 different keys. So we should try it one by one to get some coherent message.
+
+#+begin_src python :results output
+#!/usr/bin/env python3
+
+message_list = []
+cipher_list = []
+
+for i in range(1, 6):
+    with open(f'dist/M{i}/decrypted.txt') as f:
+        message_list.append(int(f.read(), 2))
+        
+    with open(f'dist/M{i}/encrypted.txt') as f:
+        cipher_list.append(int(f.read(), 2))
+        
+with open('dist/Important_Message_Captured.txt') as f:
+    C = int(f.read(), 2)
+    
+key_list = [m ^ c for m, c in zip(message_list, cipher_list)]
+result_list = [C ^ k for k in key_list]
+
+for r in result_list:
+    print(r.to_bytes(len(str(r)), 'big').strip(b'\x00'))
+#+end_src
+
+#+RESULTS:
+: b'M\xe9%\x9a\xb7\xdaW\x89\xc5\xee\x7f\x19\xf0\xc5P\x92\xcc\xfc\x13\x7fO?\xf3A\xc9=\x8eiK|\x04\xde\xf0(\x1auhS\xc6\x9cO\x05\x95T(^\x07S\xe1\xa5\x19.\xd8\n7\x97\x15\xb7\xb4\xbf\xd2\x80\x12\xca\xa8\xd6\xf5\x80\xdf\xdf\xb4",\xd3\x04\xa1\xb0p2\x04q\xbbnK\xf6\x04\x92\x9c\xe9\xfd1E\xc9\x88H\xe2\x18\x1d#\x05h\xeb5\xa10I.\xf3\x8b\x0c\x86d:\xcf\tLM\xebOk\xf1\xb8\xd8\x17R/Q\x96\x19\x84F\xfc+\xbf\xc6\xa2\x7f;&\x9d\xeb\xed0C\x81\xfb\r\x84\x05\xa2\x00\xe5\xfd\xa7\x7f\xa0\x93l\xd8~/5\xad\x10h\xdf\xc9 \xe4'
+: b'4\xf7=)\xe9K\xc1\xf80\x13\xd2\x96\x14Iut\xd7C\xd4\t\x17M\x83\xaa\x9d\x96\xc2\xb1d"D\xc6\xa2;\xf7\x8aK$\x95$\xe3\xf3\r\xf8\xa67\xa3z\x9c\xdf\x9d\xf5\x8c\x8fM-\xd0\x9a\xb4\xdc\xee6J[)_\x1e\x8c\x82T\xd9\x8d\xc5\xc64\x01\xb7\xf0\xc6\xa1\xf0\x0eQC\x90W\x91\xff\x17\xc3jK\x90\x0ef_\x8e\x9b\xd9\xf0|\x16\xd5G)\x82\xcd\xe2\x06:&\xe8\xb7\xd0T\xec\xefNp\x0b(\x82\x96<#B\xdd\rS\x9b\xda\x03\x9c\x07]("\x9bV*\xcc\x8d\x9fd\xe8XK\x83'
+: b'4\xf7=)\xe9KoJ69(\x16\xd1T}.\t\xdc\xd1l\xcdwE\x92\x08U\x9a\x7fL\xbf\xbe\xef\xecI\x18T\xaf\xa06%{\xf2(\x8e?\x17B\x15\x03\xed\xb3\xe4e\xd1\xd4\xf2\xd6\xba\xf2\x13\xaf\xa8Tw\x12\xe0&\x9f|xN\xdb\xf4\xbb\xf3\x90\xee\xca\x88o5\xfb\x12\xb025\x93s\xc6\x1c\x81p\xf0\\\xe7v\x15\xbe\xb6\xa4\xe9n\x99*\x8e]AG\xd3$\xc3:\xf59\x0e\xa4\xc0,N"iX\xe0\xd7p<k\x85C\xe3M\t\xd7\xa3\xe3\x9cI\xa9\x82\xb8a\x93\x0c\x87N\xa1\xb1\x08'
+: b"Transferring credentials now. Be sure to keep them secret, we don't want these getting out. [Username: Admin, Password: swampCTF{Nev3r_r3Use_a_0TP}]"
+: b'4\xf7=)\xe9KoJ69(\x16\xd1T}.\t\xdc\xd1l\xcdwE\x92\x08U>\xe9\x8bv\xa8\xaf\xea0\xc9\xf5\x8d\xa0\x00\xfaq\xb6\xe1\x85\xb6\x1d\xc2D\x8f\xe1\x03\x9e\xe1vp\xa3J\x98\x1f\xa0o\x11z\xfe\xf6\x91\xd9%\xf1\xaaR0\xfa4\xc3\xaf\xe2\x0c\x86\xdf|,\x17\xae\x04t\xb8g\xabT\x17\xdb\xb9\xdc\xa9\xe5a\x9a]\xa2RlZe\x04?\xfc\xa2J\x91\xe9c8\xf6}i\x12\x15\xfd\xf5\x99K\x97\\u}F4![%\xd8\xc9S\xf7G\xed\x8dY\x98o>\xb8\xb6\x8c@\xf2\xb2'
+
+So the =M4='s key is we need.
