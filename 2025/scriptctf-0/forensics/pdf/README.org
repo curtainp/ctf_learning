@@ -22,7 +22,7 @@ Let's extract out and decompress it.
 
 [[file:exp.py][exp]]
 
-As we guessed, the first object is the compress flag. 
+As we guessed, the first object is the compress flag.
 
 
 
