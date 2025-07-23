@@ -1,0 +1,31 @@
+#!/bin/bash
+
+HOST="chal.2025.ductf.net"
+PORT=30015
+PROTO="gemini"
+
+echo '[*] fetching page index...'
+
+linker=$(echo -e "gemini://$HOST/linker.gmi\r\n" | \
+  openssl s_client -connect $HOST:$PORT -crlf -ign_eof 2>/dev/null)
+
+# echo "[*] get linker page: $linker"
+
+# https://github.com/BurntSushi/ripgrep/issues/320 for refer rg only match
+pages=$(echo "$linker" | rg '(pages/[^ ]+)' -or '$1')
+
+for page in $pages; do
+  echo "[*] checking: $page"
+
+  response=$(echo -e "gemini://$HOST/$page\r\n" | \
+    openssl s_client -connect $HOST:$PORT -crlf -ign_eof 2>/dev/null)
+
+  if echo "$response" | grep -q "DUCTF{"; then
+    echo "[+] flag found in: $page"
+    echo "$response" | grep "DUCTF{"
+
+    exit 0
+  fi
+done
+
+echo '[-] flag not found in scanned pages.'

@@ -1,0 +1,22 @@
+<!-- one of the interesting elements is the `from`. It's quite special element in the HTML -->
+<!-- bacause it cannot be nested in itself. the specification is explicit that it cannot have -->
+<!-- any descendants that is also a `from` element. -->
+<!-- this will yield the following DOM tree: -->
+<!-- <form id='from1'> -->
+<!-- inside form1 inside form2 -->
+
+<form id=form1>
+inside form1
+<form id=form2>
+inside form2
+
+
+<!-- it's possible to create nested forms with a slightly broken markup with mis-nested tags -->
+<!-- <form id='outer'><div><form id='inner'><input> -->
+<form id='outer'><div></form><form id='inner'><input>
+<!-- this is not a bug in any particular browser; it results directly from the HTML spec, and described -->
+<!-- in the algorithm of parsing HTML: -->
+<!-- - when we open a `<form>` tag, the parse needs to keep record of the fact that it was opened with a form -->
+  <!-- element pointer, if the pointer is not null, then form element cannot be created. -->
+<!-- - when we end a `<form>` tag, the form element pointer is always set to null. -->
+
