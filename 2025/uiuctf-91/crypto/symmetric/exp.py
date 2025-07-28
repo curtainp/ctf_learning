@@ -6,12 +6,18 @@ ct = 720607330561370237459911161481490697044029472780348552630924063963226757984
 
 e = 65537
 
-import sympy
+from sympy import symbols, solve
+from sympy.polys.polytools import Poly
 from Crypto.Util.number import long_to_bytes
 
+# Newton's identities
+# e1 = p + q + r + s                (sum of all elements)
+# e2 = pq + pr + ps + qr + qs + rs  (sum of pairwise products)
+# e3 = pqr + pqs + prs + qrs        (sum of triple products)
+# e4 = pqrs
 e1 = h1
-e2 = (h1 * e1 - h2) // 2
-e3 = (e2 * h1 - e1 * h2 + h3) // 3
+e2 = (h1**2 - h2) // 2
+e3 = (h1**3 - 3 * h1 * h2 + 2 * h3) // 6
 e4 = N
 
 print(f"[+] e1 = {e1}")
@@ -20,18 +26,12 @@ print(f"[+] e3 = {e3}")
 print(f"[+] e4 = {e4}")
 
 # Step 2: Find the roots using sympy for arbitrary precision
-x = sympy.Symbol("x")
+x = symbols("x")
 # Construct the polynomial expression
-P = x**4 - e1 * x**3 + e2 * x**2 - e3 * x + e4
-
-# Use sympy's nroots to find numerical roots with high precision
-# This avoids the float overflow error
-roots = sympy.nroots(P)
-
-p = int(round(roots[0]))
-q = int(round(roots[1]))
-r = int(round(roots[2]))
-s = int(round(roots[3]))
+poly = Poly(x**4 - e1 * x**3 + e2 * x**2 - e3 * x + e4)
+roots = solve(poly)
+primes = sorted([int(root) for root in roots])
+p, q, r, s = primes
 
 print("Found primes:")
 print(f"p = {p}")

@@ -32,17 +32,15 @@ flag_enc = [
 KEY = 0xFFFFFF2F
 
 
-def solve():
-    pass
+from z3 import *
 
 
 def z3_method():
-    from z3 import *
-
     s = Solver()
 
     input = [BitVec(f"input_{i}", 32) for i in range(len(flag_enc))]
 
+    # Actually, this is a discrete logarithm
     def F(a1, a2, a3):
         v5 = 1
         v6 = a1 % a3
@@ -69,3 +67,19 @@ def z3_method():
         print(s.model())
     else:
         print("not work")
+
+
+from sympy.ntheory import discrete_log
+
+input_value = []
+for i in range(8):
+    base = test_pt[i]
+    target = test_ct[i]
+    try:
+        x = discrete_log(KEY, target, base)
+        input_value.append(x % KEY)
+    except ValueError:
+        print(f"No discrete log found for i={i}")
+        input_value.append(0)
+
+print(f"input: {input_value}")
