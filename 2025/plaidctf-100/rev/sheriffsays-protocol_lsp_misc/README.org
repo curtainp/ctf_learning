@@ -1,0 +1,14 @@
+* Description
+[[file:clipboard-20250406T143427.png]]
+
+The Sheriff steps into the square, hand twitchin’ near his holster, eyes locked on your repo. He’s
+seen the warnings---and he don’t take kindly to 'em. Fire up your IDE, fix what’s broken, and make
+damn sure your code don’t flinch… 'cause justice don’t wait, and neither does he.
+~nc sheriffsays.chal.pwni.ng 9000~
+
+Posted by Sheriff n00bi3s
+With Deputies madStacks, ath0
+
+https://plaidctf.com/files/sheriffsays.b90f766ad829d3e9c0288e7b38b65f9ea3e70bf41bac560d08c2c05fe44b24f7.tgz
+
+* Solution

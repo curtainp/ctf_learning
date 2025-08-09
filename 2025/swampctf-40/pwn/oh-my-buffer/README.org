@@ -1,0 +1,6 @@
+* Description
+I may have messed up my I/O calls, but it doesn't matter if everything sensitive has been erased, right?
+
+~nc chals.swampctf.com 40005~ 
+
+* Solution

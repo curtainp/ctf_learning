@@ -1,0 +1,20 @@
+* Description 
+
+[[file:clipboard-20250406T154654.png]]
+
+Defy your fate.
+  Posted by Sheriff ubuntor
+  With Deputies bluepichu, iamcorwin
+** Attachment
+https://plaidctf.com/files/innov8_excav8.d35e5bf36e3e6438dd960aa7adeeb1dcbb25479bddd96509ba72968e1238b488.tgz
+https://plaidctf.com/files/innov8_enerv8.5afd4c762384629ef3a2b06abe7af967eec391eea355ac76d364046d0c88ae47.tgz.gpg
+
+** excav8
+Remember the past. (Solving this gives the password for part 2's server and handout.)
+
+
+** enerv8
+Control the future. (The handout is encrypted with `gpg` using the password from solving part 1.)
+nc innov8-enerv8.chal.pwni.ng 1337
+
+* Solution 

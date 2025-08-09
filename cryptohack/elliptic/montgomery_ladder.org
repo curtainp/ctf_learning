@@ -1,0 +1,20 @@
+
+This category is filled with insecure implementations of elliptic curve cryptography. Picking bad
+curve leads to broken protocols and fun puzzles, but private keys can be extracted from devices even
+when the curves picked are safe.
+
+One technique to learn private information is through side channel analysis. At a high level, a
+system performing operations with a secret can leak information about the secret through data such
+as the time taken, or work done by the circuit.
+
+Timing attacks against ECDSA signing can leak information about the nonce, which together with
+sophisticated attacks like [[https://eprint.iacr.org/2020/615.pdf][LadderLeak]] can be lethal for the protocol. To protect against this, a
+lot of work has been done to make scalar multiplication of points on an elliptic curve to run in
+constant time.
+
+A key component of constant time algorithms for scalar multiplication for points on elliptic curves
+are based on Montgomery's Ladder. In this challenge, the aim is to implement the most basic version
+of this: Montgomery's binary algorithm in the group.
+
+We will work with the following elliptic curve:
+

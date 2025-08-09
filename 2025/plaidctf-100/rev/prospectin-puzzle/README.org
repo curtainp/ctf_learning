@@ -1,0 +1,107 @@
+* Description 
+[[file:clipboard-20250406T143131.png]]
+
+Welcome to Fool's Gulch, prospector! Word around the saloon is that old Jeremiah Plaid struck gold
+somewhere in these hills before he disappeared. His journal entries mention a secret sequence that
+leads to The Mother Lode - the richest gold vein in all the territory. Can you decipher Jeremiah's
+cryptic notes and find the treasure that's eluded so many fortune seekers? Enter the correct
+sequence, and you might just strike it rich! Remember, not all gold that glitters is worth the same.
+The purer your find, the higher your claim will be valued at the assayer's office. 
+
+Posted by Sheriff ath0
+With Deputy hgarrereyn
+
+https://plaidctf.com/files/prospectin.cdc5496a4fa3697a4e15149f7493ebfb7e576f674e9ebff8990fc2fa0129375b.tgz
+
+
+** Fool's Gulch
+Old Man Jenkins' map to his modest gold claim has been floating around Fool's Gulch for years. Most think
+it's worthless, but you've noticed something peculiar in the worn-out corners...
+
+
+** The Mother Lode
+The legendary Jeremiah Plaid's final journal has emerged after 50 years! It contains cryptic coordinates
+to what he called "The Mother Lode" - a gold vein so pure and vast it would make the richest man in
+California look like a pauper. But the old prospector was paranoid and encoded his secret...
+
+
+* Sulution 
+
+** Fool's Gulch 
+
+#+begin_example
+char input_buffer_0x50; // [xsp+Bh] [xbp-45h] BYREF
+  char T0x43; // [xsp+Ch] [xbp-44h]
+  char T0x54; // [xsp+Dh] [xbp-43h]
+  char T0x46; // [xsp+Eh] [xbp-42h]
+  char T0x7B; // [xsp+Fh] [xbp-41h]
+  char T0x32_5; // [xsp+10h] [xbp-40h]
+  char T0x34; // [xsp+11h] [xbp-3Fh]
+  char T0x64_3; // [xsp+12h] [xbp-3Eh]
+  char T0x31; // [xsp+13h] [xbp-3Dh]
+  unsigned __int8 T0x36; // [xsp+14h] [xbp-3Ch]
+  unsigned __int8 T0x31_2; // [xsp+15h] [xbp-3Bh]
+  char T0x32_6; // [xsp+16h] [xbp-3Ah]
+  char T0x36_3; // [xsp+17h] [xbp-39h]
+  unsigned __int8 T0x64; // [xsp+18h] [xbp-38h]
+  unsigned __int8 T0x36_1; // [xsp+19h] [xbp-37h]
+  char T0x37; // [xsp+1Ah] [xbp-36h]
+  unsigned __int8 T0x33_3; // [xsp+1Bh] [xbp-35h]
+  unsigned __int8 T0x39; // [xsp+1Ch] [xbp-34h]
+  unsigned __int8 T0x64_1; // [xsp+1Dh] [xbp-33h]
+  unsigned __int8 T0x36_2; // [xsp+1Eh] [xbp-32h]
+  unsigned __int8 T0x61; // [xsp+1Fh] [xbp-31h]
+  char T0x64_4; // [xsp+20h] [xbp-30h]
+  char T0x61_1; // [xsp+21h] [xbp-2Fh]
+  unsigned __int8 T0x38; // [xsp+22h] [xbp-2Eh]
+  char T0x32_1; // [xsp+23h] [xbp-2Dh]
+  char T0x62; // [xsp+24h] [xbp-2Ch]
+  char T0x31_1; // [xsp+25h] [xbp-2Bh]
+  char T0x32; // [xsp+26h] [xbp-2Ah]
+  unsigned __int8 T0x35; // [xsp+27h] [xbp-29h]
+  char T0x35_2; // [xsp+28h] [xbp-28h]
+  char T0x33; // [xsp+29h] [xbp-27h]
+  char T0x34_1; // [xsp+2Ah] [xbp-26h]
+  unsigned __int8 T0x64_5; // [xsp+2Bh] [xbp-25h]
+  char T0x32_7; // [xsp+2Ch] [xbp-24h]
+  char T0x61_2; // [xsp+2Dh] [xbp-23h]
+  unsigned __int8 T0x65_1; // [xsp+2Eh] [xbp-22h]
+  char T0x32_8; // [xsp+2Fh] [xbp-21h]
+  char T0x33_1; // [xsp+30h] [xbp-20h]
+  unsigned __int8 T0x32_9; // [xsp+31h] [xbp-1Fh]
+  char T0x34_2; // [xsp+32h] [xbp-1Eh]
+  char T0x62_1; // [xsp+33h] [xbp-1Dh]
+  unsigned __int8 T0x33_2; // [xsp+34h] [xbp-1Ch]
+  unsigned __int8 T0x39_1; // [xsp+35h] [xbp-1Bh]
+  unsigned __int8 T0x65_2; // [xsp+36h] [xbp-1Ah]
+  char T0x64_2; // [xsp+37h] [xbp-19h]
+  char T0x37_1; // [xsp+38h] [xbp-18h]
+  unsigned __int8 T0x32_2; // [xsp+39h] [xbp-17h]
+  unsigned __int8 T0x65; // [xsp+3Ah] [xbp-16h]
+  unsigned __int8 T0x35_1; // [xsp+3Bh] [xbp-15h]
+  char T0x61_3; // [xsp+3Ch] [xbp-14h]
+  unsigned __int8 T0x31_3; // [xsp+3Dh] [xbp-13h]
+  char T0x32_3; // [xsp+3Eh] [xbp-12h]
+  unsigned __int8 T0x30; // [xsp+3Fh] [xbp-11h]
+  unsigned __int8 T0x30_1; // [xsp+40h] [xbp-10h]
+  char T0x63; // [xsp+41h] [xbp-Fh]
+  char T0x35_3; // [xsp+42h] [xbp-Eh]
+  unsigned __int8 T0x61_4; // [xsp+43h] [xbp-Dh]
+  char T0x63_1; // [xsp+44h] [xbp-Ch]
+  char T0x39_2; // [xsp+45h] [xbp-Bh]
+  char T0x36_4; // [xsp+46h] [xbp-Ah]
+  char T0x32_4; // [xsp+47h] [xbp-9h]
+  char T0x30_3; // [xsp+48h] [xbp-8h]
+  char T0x30_2; // [xsp+49h] [xbp-7h]
+  char T0x7D; // [xsp+4Ah] [xbp-6h]
+#+end_example
+
+#+begin_src python :results output
+flag = [0x50, 0x43, 0x54, 0x46, 0x7b,]
+#+end_src
+
+#+begin_example
+PCTF{24d16126d6739d6ada82b125534d2ae2324b39ed72e5a1200c5ac96200}
+#+end_example
+
+** The Mother Lode

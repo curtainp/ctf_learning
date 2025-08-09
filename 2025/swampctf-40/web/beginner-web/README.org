@@ -1,0 +1,68 @@
+* Description
+The flag is broken up into 3 parts. The parts of the flag should be concatenated in the order they are numbered and
+then surrounded by the standard wrapper. For example: swampcTF{part1+part2+part3}
+
+http://chals.swampctf.com:42222
+
+* Solution
+
+#+begin_src html
+<!--Part 1 of the flag: w3b_"-->
+#+end_src
+
+#+begin_src javascript
+  constructor(t) {
+    this.cookieService = t;
+    let n = 'flagPart2_3',
+    r = 'U2FsdGVkX1/oCOrv2BF34XQbx7f34cYJ8aA71tr8cl8=',
+    o = 'U2FsdGVkX197aFEtB5VUIBcswkWs4GiFPal6425rsTU=';
+    this.cookieService.set(
+      'flagPart2',
+      $n.AES.decrypt(r, n).toString($n.enc.Utf8),
+      {
+        expires: 7,
+        path: '/',
+        secure: !0,
+        sameSite: 'Strict'
+      }
+    );
+    let i = new Headers;
+    i.set('flagPart3', $n.AES.decrypt(o, n).toString($n.enc.Utf8)),
+    fetch('/favicon.ico', {
+      headers: i
+    })
+  }
+#+end_src
+
+#+begin_src html
+flagpart3: c0mpl1c473d
+#+end_src
+
+#+begin_src js
+const CryptoJS = require('crypto-js')
+
+function decryptFlag(ciphertext, password) {
+    const decrypted = CryptoJS.AES.decrypt(ciphertext, password)
+    return decrypted.toString(CryptoJS.enc.Utf8)
+}
+
+const key = 'flagPart2_3'
+const part1 = 'w3b_'
+const part2 = decryptFlag('U2FsdGVkX1/oCOrv2BF34XQbx7f34cYJ8aA71tr8cl8=', key)
+const part3 = decryptFlag('U2FsdGVkX197aFEtB5VUIBcswkWs4GiFPal6425rsTU=', key)
+console.log('swampCTF{' + part1 + part2 + part3 + '}')
+#+end_src
+
+#+begin_src html
+part2: br0w53r5_4r3_
+#+end_src
+
+#+begin_src html
+flag: swampCTF{w3b_br0w53r5_4r3_c0mpl1c473d}
+#+end_src
+
+* Learn: (crypto-js)
+
+1. default mode: ~CBC~
+2. default iv: it will automatic generate 16 byte IV and insert before message. so we don't need.
+3. default padding: ~PKCS7~

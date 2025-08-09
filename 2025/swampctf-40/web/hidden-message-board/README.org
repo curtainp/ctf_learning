@@ -1,0 +1,72 @@
+* Description
+Somewhere on this message-board is a hidden flag. Nothing has worked so far but we have noticed a
+weird comment in the HTML. Maybe it's a clue?
+
+http://chals.swampctf.com:43333
+
+* Solution
+
+#+begin_src javascript
+  var printFlagSetup = document.getElementById("flagstuff");
+  console.log("Flag Will Be Checked");
+  function addNewMessages(event) {
+    event.preventDefault();
+    if (currentMessage != "") {
+      if (printFlagSetup != undefined) {
+        printFlagSetup.setAttribute("code", "");
+      }
+      addNewMessageChance();
+      divRef.current.innerHTML = "<b>[swampctfcontestant]: </b>" + currentMessage + "<br>" + divRef.current.innerHTML;
+      addNewMessageChance();
+      setMessageBoxValue(defaultValue);
+    }
+  }
+  function addNewMessageChance() {
+    var willTypeMessage = Math.floor(Math.random() * totalNumbers);
+    if (willTypeMessage <= lotteryNumber) {
+      divRef.current.innerHTML = (0,_Messages_tsx__WEBPACK_IMPORTED_MODULE_3__.returnRandomResponses)() + divRef.current.innerHTML;
+      willTypeMessage = Math.floor(Math.random() * 100);
+    }
+  }
+  function updateMessageBox(newTextBoxValue) {
+    setMessageBoxValue(newTextBoxValue);
+    addNewMessageChance();
+  }
+  async function checkCode() {
+    if (printFlagSetup != undefined) {
+      console.log(printFlagSetup.getAttribute("code"));
+      if (printFlagSetup.getAttribute("code") === "G1v3M3Th3Fl@g!!!!") {
+        const flag = await (0,_Messages_tsx__WEBPACK_IMPORTED_MODULE_3__.getFlag)();
+        setFlagValue("[flag]: " + flag);
+      }
+    }
+  }
+  checkCode();
+#+end_src
+
+Here ~addNewMessages~ can trigger the ~checkCode~ logic, but when the =currentMessage= is not nil it will clear the =code= attribute. so we can make it nil and set =code=
+attribute to ~G1v3M3Th3Fl@g!!!!~
+
+** Directly
+
+When we load the target site, there is a ~bundle.js~, and we search ~flag~ in it (and filter). we can find following flag path:
+#+begin_src shell
+~/Documents/ctf/2025/swampctf/web/hidden-message-board main*
+ctf ❯ rg 'flag.*.txt' bundle.js
+41106:/***/ "./src/HiddenData/flag.txt":
+41108:  !*** ./src/HiddenData/flag.txt ***!
+41113:module.exports = __webpack_require__.p + "static/media/flag.d93dd6a8616cc31d36db.txt";
+41129:/* harmony import */ var _HiddenData_flag_txt__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./HiddenData/flag.txt */ "./src/HiddenData/flag.txt");
+41214:  await fetch(_HiddenData_flag_txt__WEBPACK_IMPORTED_MODULE_0__).then(r => r.text()).then(text => {
+#+end_src
+
+so the flag was fetched by ~/static/media/flag.d93dd6a8616cc31d36db.txt~.
+
+#+begin_src shell
+ctf ❯ curl 'http://chals.swampctf.com:43333/static/media/flag.d93dd6a8616cc31d36db.txt'
+swampCTF{Cr0ss_S1t3_Scr1pt1ng_0r_XSS_c4n_ch4ng3_w3bs1t3s}%
+#+end_src
+
+#+begin_quote
+NOTE: this method work only for that we have permission to read that flag file directly.
+#+end_quote

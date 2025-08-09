@@ -1,0 +1,21 @@
+* Description
+Welcome to MaybeHappyEndingGPT! In this cyberpunk musical's universe, robots and AI coexist with humans in Seoul circa 2050.
+You'll be working with Hwaboon, a plant-care robot assistant who brings warmth and nurturing wisdom to the digital age.
+
+http://chals.swampctf.com:50207
+
+* Solution
+
+Code analysis reveals a critical vulnerability in ~routes.js~, the content returned by the API is passed =directly= to eval
+without any verification:
+
+#+begin_src javascript
+const flag = await eval(content);
+#+end_src
+
+So, next we should consider to control what returned by the API. to do this. it's possible to force the template to return
+exactly the following code:
+
+#+begin_src javascript
+require('fs').readFileSync('flag.txt', 'utf8');
+#+end_src
