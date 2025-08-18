@@ -1,0 +1,5 @@
+* Solution
+
+The text has been encoded by taking the ASCII hex value for each character and appending it to the
+Unicode prefix for =Mahjong tiles=: ~U+1F0~, By extracting the *last two digits from each tiles Unicode
+value*, we can get the message. 

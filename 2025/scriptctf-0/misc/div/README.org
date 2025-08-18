@@ -1,0 +1,5 @@
+* Solution
+Python ~decimal~ module has a function ~Decimal~ can construct a =Decimal= object with value that can be
+integer, string, tuple or another =Decimal= object. 
+
+We can construct a /infinity/ object by pass a 'infinity' string parameter to that function.

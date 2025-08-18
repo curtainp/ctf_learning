@@ -1,0 +1,14 @@
+* Description
+
+I was playing minecraft, and found this strange enchantment on the enchantment table. Can you figure
+out what it is? Wrap the flag in scriptCTF{} 
+* Solution
+:PROPERTIES:
+:ID:       3f69c34a-be74-42ed-8e2e-d71f5d9b4c08
+:END:
+
+The *Minecraft Enchanting Table* aka /Galactic Alphabet/.
+
+#+DOWNLOADED: screenshot @ 2025-08-18 13:55:55
+[[file:2025-08-18_13-55-55_screenshot.png]]
+

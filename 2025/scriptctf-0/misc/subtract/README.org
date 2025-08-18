@@ -1,0 +1,48 @@
+* Description
+
+The image size is 500x500. You might want to remove some stuff... Note: Some may call it guessy!
+* Solution
+
+After ~unzip~ the challenge file, we get a *coordinates.txt* file which hint us this is a coordinates.
+
+#+begin_src shell
+ctf ❯ cat dist/coordinates.txt | wc -l
+250573
+#+end_src
+
+According to the description says that the image size is 500x500, but here we have more that 250000
+pixel coordinates. *There are 573 pixel coordinates noise!*
+
+#+begin_src shell
+ctf ❯ sort dist/coordinates.txt | uniq -c | wc -l
+250000
+#+end_src
+
+Yeah, that's right. And we can see that the noise coordinates are just duplicate of the other.
+
+#+begin_src shell
+ctf ❯ sort dist/coordinates.txt | uniq -c | sort -n | tail -n 15
+      2 (97, 52)
+      2 (97, 57)
+      2 (97, 58)
+      2 (97, 59)
+      2 (98, 52)
+      2 (98, 54)
+      2 (98, 55)
+      2 (98, 56)
+      2 (98, 57)
+      2 (98, 58)
+      2 (99, 52)
+      2 (99, 53)
+      2 (99, 54)
+      2 (99, 55)
+      2 (99, 56)
+#+end_src
+
+After draw this point out, we can notice that only the point appear once can make sense.
+
+1. parse the coordinates, then filter out the duplication noise from it.
+2. draw that pixel coordinates onto the 500x500 canvas.
+   
+
+
