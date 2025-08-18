@@ -1,0 +1,9 @@
+* Solution
+
+In =FAT32=, when a file is delete, its directory entry remains in the root directory, but the first
+byte is overwritten, usually with =0xE5=, and marked as free. If the file haven't been overwritten,
+its easy to recover.
+
+#+begin_src shell
+  icat -f fat32 xxx.img [inode]   # icat from sleuthkit
+#+end_src
