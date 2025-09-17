@@ -1,0 +1,8 @@
+* Description
+Exploitation begins at the intersection of two core ideas: corruption program memory and gaining
+control-flow. =Memory corruption= provides the foothold, allowing control over a program's execution
+by overwriting critical data such as return addresses or other valuable pointers. =Shellcode= provides
+the payload, a carefullly crafted sequence of instructions designed to carry out specific actions
+once execution is redirected. When combined, these concepts illustrate the foundation of =software
+exploitation=: not just crashing a program, but deliberately shaping its behavior to execute
+attacker-controlled code.
