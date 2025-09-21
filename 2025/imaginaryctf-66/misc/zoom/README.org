@@ -1,0 +1,16 @@
+* Solution
+:PROPERTIES:
+:ID:       4ce566bb-f780-448a-91c9-fb538e11774a
+:END:
+
+Search for =beavertail= on Google which is a famous Canadian restaurant chain. And from the picture we
+get that there is a big river and near the airport, cause the aircraft is in the initial phase of takeoff.
+
+Then we search =beavertail= on Google maps and find river and airport near it.
+
+#+DOWNLOADED: screenshot @ 2025-09-08 11:07:34
+[[file:2025-09-08_11-07-34_screenshot.png]]
+
+we can find the red dot place when take a closer look at the red arrow.
+
+https://maps.app.goo.gl/bVJN4mapcezDtKTE8

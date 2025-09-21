@@ -199,7 +199,7 @@ io.interactive()
 
 BTW, there is another way to achieve the goal:
 1. use ROP to call ~mprotect~ to get a *RWX* place.
-2. use ROP to call ~read*~ to get the actually shellcode.
+2. use ROP to call ~read~ to get the actually shellcode.
 3. ~ret~ to the shellcode.
    
-~read*~ means all syscall that can get input from user to where we want. 
+~read~ means all syscall that can get input from user to where we want. 
